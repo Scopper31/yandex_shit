@@ -10,12 +10,17 @@ import pyperclip
 import webbrowser
 from bs4 import BeautifulSoup
 import requests
+from selenium import webdriver
+from selenium.webdriver import ActionChains
+from selenium.webdriver.common.by import By
 
 
 key = "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"
 openai.api_key = key
 
 template = 'i need only python conde without any comments to solve this problem in code block: '
+username = "Veselayakortoshka"
+password = "Popkapiratbnh79"
 
 
 def answer(s):
@@ -31,68 +36,11 @@ def answer(s):
     return response["choices"][0]["text"]
 
 
-def click_yellow_button(im):
-    yellow = (255, 219, 77)
-
-    f = 0
-    for x in range(im.width):
-        for y in range(im.height):
-            if im.getpixel((x, y)) == yellow:
-                pyautogui.click(x + 5, y + 5)
-                f = 1
-                break
-        if f == 1:
-            break
-
-
-def upload(s, redactor):
-    ans = answer(template + s).strip()
-    pyperclip.copy(ans)
-    im = pyautogui.screenshot()
-
-    if redactor():
-        click_yellow_button(im)
-        time.sleep(2)
-
-    gray = (245, 242, 240)
-    f = 0
-    for x in range(im.width):
-        for y in range(im.height):
-            if im.getpixel((x, y)) == gray:
-                pyautogui.click(x + 50, y + 50)
-                pyautogui.hotkey('ctrl', 'a')
-                pyautogui.hotkey('ctrl', 'v')
-                f = 1
-                break
-        if f == 1:
-            break
-
-    click_yellow_button(im)
-
-
-def lesson_parser(url):
-    # не проходит авторизацию
-    html = requests.get(url).text
+def lesson_parser(html):
     soup = BeautifulSoup(html, 'html.parser')
-    hrefs = [a['href'] for a in soup.find_all('a') if 'tasks' in a.text]
+    hrefs = [a['href'] for a in soup.find_all(class_='student-task-list__task')]
+    hrefs = ['https://lyceum.yandex.ru' + i for i in hrefs]
     return hrefs
-
-
-def task_parser(url):
-    # не проходит авторизацию
-    q = ''
-    red = False
-    html = requests.get(url).text
-    if 'Открыть редактор' in html:
-        red = True
-    soup = BeautifulSoup(html, 'html.parser')
-
-    legend_elements = soup.find_all('legend', class_='legend')
-
-    for element in legend_elements:
-        q += element.text + ' '
-
-    return q, red
 
 
 def main():
@@ -101,14 +49,83 @@ def main():
         Напишите класс Cabbage, при инициализации принимающий три аргумента: размер самого верхнего листа, шаг изменения размера при переходе к следующему листу и размер кочерыжки.
         Класс реализует метод leaf(), который печатает размер следующего листа (меньшего предыдущего на шаг), пока размер листа не меньше кочерыжки, дальше печатается размер кочерыжки.
         '''
-    redactor = True
 
     lesson_url = input()
-    data = lesson_parser(lesson_url)
+
+    driver = webdriver.Chrome()
+    driver.implicitly_wait(30)
+    driver.get(lesson_url)
+    ActionChains(driver).click(
+        driver.find_element(By.CLASS_NAME, "Button2.Button2_checked.Button2_size_l.Button2_view_default")).perform()
+    driver.find_element("name", "login").send_keys(username)
+    driver.find_element("name", "login").submit()
+    driver.find_element("name", "passwd").send_keys(password)
+    driver.find_element("name", "passwd").submit()
+    time.sleep(2)
+    lesson_html = driver.page_source
+    data = lesson_parser(lesson_html)
+    print(data)
     for task_url in data:
-        question, redactor = task_parser(task_url)
-        webbrowser.open_new_tab(task_url)
-        upload(question, redactor)
+        driver.get(task_url)
+        time.sleep(2)
+        task_html = driver.page_source
+        if 'Зачтено' in driver.page_source:
+            continue
+        if 'problem-statement' not in task_html:
+            ActionChains(driver).click(
+                driver.find_element(By.CLASS_NAME, "y4ef2d--task-description-opener").find_element(By.CLASS_NAME,
+                                                                                                   "nav-tab.nav-tab_view_button")).perform()
+            time.sleep(1)
+            task_html = driver.page_source
+
+        q = []
+        soup = BeautifulSoup(task_html, 'html.parser')
+        legend_elements = soup.find_all(class_='legend')
+        for element in legend_elements:
+            if 'header' in element:
+                continue
+            if 'sample-tests' in element:
+                continue
+            q.append(element.text)
+        if 'input-specification' in task_html:
+            inputus = soup.find_all(class_='input-specification')
+            for e in inputus:
+                q.append(e.text)
+        if 'output-specification' in task_html:
+            output = soup.find_all(class_='output-specification')
+            for e in output:
+                q.append(e.text)
+        q = ''.join(q)
+        time.sleep(1)
+        print(q)
+        if 'Открыть редактор' in task_html:
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
+                                                           "Button2.Button2_type_link.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+
+        for zzz in range(5):
+
+            time.sleep(2)
+            ans = answer(template + q).strip()
+            pyperclip.copy(ans)
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-lines")).perform()
+            pyautogui.hotkey('ctrl', 'a')
+            pyautogui.hotkey('ctrl', 'v')
+            time.sleep(1)
+
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
+                                                           "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+
+            shit = 0
+            for t in range(100):
+                pyautogui.hotkey('f5')
+                time.sleep(5)
+                if 'Зачтено' in driver.page_source:
+                    shit = 1
+                    break
+                if 'Доработать' in driver.page_source and t > 10:
+                    break
+            if shit == 1:
+                break
 
 
 if __name__ == '__main__':
