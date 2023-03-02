@@ -87,7 +87,11 @@ def task_parser(url):
         red = True
     soup = BeautifulSoup(html, 'html.parser')
 
-    q = #
+    legend_elements = soup.find_all('legend', class_='legend')
+
+    for element in legend_elements:
+        q += element.text + ' '
+
     return q, red
 
 
