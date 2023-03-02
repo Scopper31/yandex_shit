@@ -7,6 +7,7 @@ import os
 import time
 import openai
 import pyperclip
+import webbrowser
 
 
 key = "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"
@@ -79,10 +80,11 @@ def main():
         '''
     redactor = True
 
-    lesson = input()
-    for task in data:
-        question, redactor = task_parser(url)
-        goto(task)
+    lesson_url = input()
+    data = #from lesson_url
+    for task_url in data:
+        question, redactor = task_parser(task_url)
+        webbrowser.open_new_tab(task_url)
         upload(question, redactor)
 
 
