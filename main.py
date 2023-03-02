@@ -8,6 +8,8 @@ import time
 import openai
 import pyperclip
 import webbrowser
+from bs4 import BeautifulSoup
+import requests
 
 
 key = "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"
@@ -68,8 +70,25 @@ def upload(s, redactor):
     click_yellow_button(im)
 
 
+def lesson_parser(url):
+    # не проходит авторизацию
+    html = requests.get(url).text
+    soup = BeautifulSoup(html, 'html.parser')
+    hrefs = [a['href'] for a in soup.find_all('a') if 'tasks' in a.text]
+    return hrefs
+
+
 def task_parser(url):
-    pass
+    # не проходит авторизацию
+    q = ''
+    red = False
+    html = requests.get(url).text
+    if 'Открыть редактор' in html:
+        red = True
+    soup = BeautifulSoup(html, 'html.parser')
+
+    q = #
+    return q, red
 
 
 def main():
@@ -81,7 +100,7 @@ def main():
     redactor = True
 
     lesson_url = input()
-    data = #from lesson_url
+    data = lesson_parser(lesson_url)
     for task_url in data:
         question, redactor = task_parser(task_url)
         webbrowser.open_new_tab(task_url)
