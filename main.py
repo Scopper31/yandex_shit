@@ -86,14 +86,21 @@ def main():
             task_html = driver.page_source
 
         q = []
+        forbidden_class = [['header'], ['sample-tests']]
+
         soup = BeautifulSoup(task_html, 'html.parser')
-        legend_elements = soup.find_all(class_='legend')
-        for element in legend_elements:
-            if 'header' in element:
+        problem_statement = soup.find(class_='problem-statement')
+        problem_statement_layer1 = problem_statement.findChildren(recursive=False)
+
+        for element in problem_statement_layer1:
+            if element.has_attr('h2') or not element.has_attr('class'):
                 continue
-            if 'sample-tests' in element:
+            # print(element['class'])
+            if element['class'] in forbidden_class:
                 continue
-            q.append(element.text)
+            if len(str.strip(element.text)) != 0:
+                q.append(str.strip(element.text))
+        
         if 'input-specification' in task_html:
             inputus = soup.find_all(class_='input-specification')
             for e in inputus:
