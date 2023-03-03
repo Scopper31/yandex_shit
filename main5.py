@@ -49,20 +49,20 @@ def lesson_parser(html):
 
 
 def pep8(code):
-    url = "https://codebeautify.org/python-formatter-beautifier"
+    url = "https://extendsclass.com/python-formatter.html"
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--disable-extensions")
     beatify = webdriver.Chrome(options=chrome_options)
     beatify.get(url)
-    inp = beatify.find_element(By.CSS_SELECTOR, "[class=ace_content]")
+    inp = beatify.find_element(By.CSS_SELECTOR, "[class=CodeMirror-code]")
     pyperclip.copy(code)
     ActionChains(beatify).key_down('\ue009').send_keys("a").perform()
     ActionChains(beatify).key_down('\ue009').send_keys("v").perform()
-    convert_button = beatify.find_element(By.ID, "defaultAction")
+    convert_button = beatify.find_element(By.ID, "format-code")
     ActionChains(beatify).click(convert_button).perform()
-    copy_button = beatify.find_element(By.ID, "outputcopy")
+    copy_button = beatify.find_element(By.ID, "copy-result")
     ActionChains(beatify).click(copy_button).perform()
     code_pep8 = pyperclip.paste()
     return code_pep8
