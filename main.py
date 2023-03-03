@@ -55,6 +55,8 @@ def main():
 
     driver = webdriver.Chrome()
     driver.implicitly_wait(30)
+    driver.maximize_window()
+    
     driver.get(lesson_url)
     ActionChains(driver).click(
         driver.find_element(By.CLASS_NAME, "Button2.Button2_checked.Button2_size_l.Button2_view_default")).perform()
