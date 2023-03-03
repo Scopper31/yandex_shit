@@ -130,7 +130,7 @@ def main():
             ans = answer(template + q).strip()
             print(ans)
             pyperclip.copy(ans)
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-lines")).perform()
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-code")).perform()
             pyautogui.hotkey('ctrl', 'a')
             pyautogui.hotkey('ctrl', 'v')
             time.sleep(1)
