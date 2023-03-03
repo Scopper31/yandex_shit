@@ -25,6 +25,14 @@ lesson_url = ''
 one_task = -1
 
 
+def check_payment():
+    url = 'bababuy'
+    ime_now = datetime.now().timetuple()
+    time_now = (ime_now[0], ime_now[1], ime_now[2])
+    data = {'login': username, 'time_now': time_now}
+    return bool(r.get(url, params=data))
+
+
 def remove_comments(src):
     return re.sub('#.*', '', src)
 
