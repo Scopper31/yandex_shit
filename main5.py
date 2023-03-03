@@ -78,7 +78,7 @@ def main():
         driver.get(task_url)
         time.sleep(2)
         task_html = driver.page_source
-        if 'Зачтено' in driver.page_source:
+        if 'Зачтено' in driver.page_source or 'Вердикт' in driver.page_source:
             continue
         if 'problem-statement' not in task_html:
             ActionChains(driver).click(
@@ -135,10 +135,10 @@ def main():
             for t in range(100):
                 pyautogui.hotkey('f5')
                 time.sleep(3)
-                if 'Зачтено' in driver.page_source:
-                    shit = 1
-                    break
                 if 'Доработать' in driver.page_source and t > 10:
+                    break
+                if 'Зачтено' in driver.page_source or 'Вердикт' in driver.page_source:
+                    shit = 1
                     break
             if shit == 1:
                 break
