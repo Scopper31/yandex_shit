@@ -141,11 +141,13 @@ def main():
 
         q = ''.join(q)
         print(q)
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         samples = []
         sample_tests = soup.find_all(class_='sample-tests')
         for element in sample_tests:
-            samples.append(element.text)
-        samples = ''.join(samples)
+            el = BeautifulSoup(element, 'html.parser')
+            samples.append(el.find_all('td'))
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         time.sleep(1)
 
