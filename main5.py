@@ -102,15 +102,6 @@ def main():
                 continue
             if len(str.strip(element.text)) != 0:
                 q.append(str.strip(element.text))
-        
-        if 'input-specification' in task_html:
-            inputus = soup.find_all(class_='input-specification')
-            for e in inputus:
-                q.append(e.text)
-        if 'output-specification' in task_html:
-            output = soup.find_all(class_='output-specification')
-            for e in output:
-                q.append(e.text)
 
         q = ''.join(q)
         print(q)
