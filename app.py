@@ -16,6 +16,9 @@ while True:
         break
 
     if event == 'Start':
+        if values[0] == '' or values[1] == '' or values[2] == '' or values[3] == '':
+            sg.popup_error('input is not finished!')
+            continue
         main5.username = values[0]
         main5.password = values[1]
         main5.lesson_url = values[2]
