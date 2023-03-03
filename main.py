@@ -18,7 +18,7 @@ from selenium.webdriver.common.by import By
 key = "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"
 openai.api_key = key
 
-template = 'i need only python conde without any comments to solve this problem in code block: '
+template = 'i need only python code without any comments to solve this problem in code block (): '
 username = "Veselayakortoshka"
 password = "Popkapiratbnh79"
 
@@ -50,7 +50,8 @@ def main():
         Класс реализует метод leaf(), который печатает размер следующего листа (меньшего предыдущего на шаг), пока размер листа не меньше кочерыжки, дальше печатается размер кочерыжки.
         '''
 
-    lesson_url = input()
+    lesson_url = input('Ссылку на урок\n')
+    one_task = int(input('номер задания или -1\n'))
 
     driver = webdriver.Chrome()
     driver.implicitly_wait(30)
@@ -65,7 +66,11 @@ def main():
     lesson_html = driver.page_source
     data = lesson_parser(lesson_html)
     print(data)
-    for task_url in data:
+
+    for ind, task_url in enumerate(data):
+        if one_task != -1:
+            if ind + 1 != one_task:
+                continue
         driver.get(task_url)
         time.sleep(2)
         task_html = driver.page_source
@@ -95,9 +100,17 @@ def main():
             output = soup.find_all(class_='output-specification')
             for e in output:
                 q.append(e.text)
+
         q = ''.join(q)
-        time.sleep(1)
         print(q)
+        samples = []
+        sample_tests = soup.find_all(class_='sample-tests')
+        for element in sample_tests:
+            samples.append(element.text)
+        samples = ''.join(samples)
+
+        time.sleep(1)
+
         if 'Открыть редактор' in task_html:
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
                                                            "Button2.Button2_type_link.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
@@ -106,6 +119,7 @@ def main():
 
             time.sleep(2)
             ans = answer(template + q).strip()
+            print(ans)
             pyperclip.copy(ans)
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-lines")).perform()
             pyautogui.hotkey('ctrl', 'a')
@@ -118,7 +132,7 @@ def main():
             shit = 0
             for t in range(100):
                 pyautogui.hotkey('f5')
-                time.sleep(5)
+                time.sleep(3)
                 if 'Зачтено' in driver.page_source:
                     shit = 1
                     break
