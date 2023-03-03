@@ -45,6 +45,26 @@ def lesson_parser(html):
     return hrefs
 
 
+def pep8(code):
+    url = "https://codebeautify.org/python-formatter-beautifier"
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--disable-extensions")
+    beatify = webdriver.Chrome(options=chrome_options)
+    beatify.get(url)
+    inp = beatify.find_element(By.CSS_SELECTOR, "[class=ace_content]")
+    pyperclip.copy(code)
+    ActionChains(beatify).key_down('\ue009').send_keys("a").perform()
+    ActionChains(beatify).key_down('\ue009').send_keys("v").perform()
+    convert_button = beatify.find_element(By.ID, "defaultAction")
+    ActionChains(beatify).click(convert_button).perform()
+    copy_button = beatify.find_element(By.ID, "outputcopy")
+    ActionChains(beatify).click(copy_button).perform()
+    code_pep8 = pyperclip.paste()
+    return code_pep8
+
+
 def main():
     question = '''
         Лист за листом, один меньше другого, пока не останется кочерыжка.
