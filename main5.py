@@ -13,7 +13,7 @@ import requests
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
-
+import re
 
 key = "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"
 openai.api_key = key
@@ -25,15 +25,18 @@ lesson_url = ''
 one_task = -1
 
 
+def remove_comments(src):
+    return re.sub('#.*', '', src)
+
 def answer(s):
     response = openai.Completion.create(
-      model="text-davinci-003",
-      prompt=s,
-      temperature=0.5,
-      max_tokens=1000,
-      top_p=1.0,
-      frequency_penalty=0.5,
-      presence_penalty=0.0,
+        model="text-davinci-003",
+        prompt=s,
+        temperature=0.5,
+        max_tokens=1000,
+        top_p=1.0,
+        frequency_penalty=0.5,
+        presence_penalty=0.0,
     )
     return response["choices"][0]["text"]
 
@@ -52,10 +55,14 @@ def main():
         Класс реализует метод leaf(), который печатает размер следующего листа (меньшего предыдущего на шаг), пока размер листа не меньше кочерыжки, дальше печатается размер кочерыжки.
         '''
 
-    driver = webdriver.Chrome()
+    chrome_options = webdriver.ChromeOptions()
+    #chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--disable-extensions")
+    driver = webdriver.Chrome(options=chrome_options)
     driver.implicitly_wait(30)
     driver.maximize_window()
-    
+
     driver.get(lesson_url)
     mail_button = driver.find_element(By.CSS_SELECTOR, "[data-type=login]")
     button_pressed = mail_button.get_attribute('aria-pressed')
@@ -78,8 +85,9 @@ def main():
         driver.get(task_url)
         time.sleep(2)
         task_html = driver.page_source
-        if 'Зачтено' in driver.page_source or 'Вердикт' in driver.page_source:
+        if 'Зачтено' in driver.page_source or ('Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
             continue
+
         if 'problem-statement' not in task_html:
             ActionChains(driver).click(
                 driver.find_element(By.CLASS_NAME, "y4ef2d--task-description-opener").find_element(By.CLASS_NAME,
@@ -122,10 +130,12 @@ def main():
             time.sleep(2)
             ans = answer(template + q).strip()
             print(ans)
+            ans = remove_comments(ans)
+            print(ans)
             pyperclip.copy(ans)
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-code")).perform()
-            pyautogui.hotkey('ctrl', 'a')
-            pyautogui.hotkey('ctrl', 'v')
+            ActionChains(driver).key_down('\ue009').send_keys("a").perform()
+            ActionChains(driver).key_down('\ue009').send_keys("v").perform()
             time.sleep(1)
 
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
@@ -133,11 +143,11 @@ def main():
 
             shit = 0
             for t in range(100):
-                pyautogui.hotkey('f5')
+                driver.refresh()
                 time.sleep(3)
                 if 'Доработать' in driver.page_source and t > 10:
                     break
-                if 'Зачтено' in driver.page_source or 'Вердикт' in driver.page_source:
+                if 'Зачтено' in driver.page_source or ('Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
                     shit = 1
                     break
             if shit == 1:
