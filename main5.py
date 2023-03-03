@@ -52,9 +52,6 @@ def main():
         Класс реализует метод leaf(), который печатает размер следующего листа (меньшего предыдущего на шаг), пока размер листа не меньше кочерыжки, дальше печатается размер кочерыжки.
         '''
 
-    lesson_url = input('Ссылку на урок\n')
-    one_task = int(input('номер задания или -1\n'))
-
     driver = webdriver.Chrome()
     driver.implicitly_wait(30)
     driver.maximize_window()
