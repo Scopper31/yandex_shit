@@ -60,8 +60,11 @@ def main():
     driver.maximize_window()
     
     driver.get(lesson_url)
-    ActionChains(driver).click(
-        driver.find_element(By.CLASS_NAME, "Button2.Button2_checked.Button2_size_l.Button2_view_default")).perform()
+    mail_button = driver.find_element(By.CSS_SELECTOR, "[data-type=login]")
+    button_pressed = mail_button.get_attribute('aria-pressed')
+    if button_pressed == 'false':
+        ActionChains(driver).click(mail_button).perform()
+    time.sleep(0.2)
     driver.find_element("name", "login").send_keys(username)
     driver.find_element("name", "login").submit()
     driver.find_element("name", "passwd").send_keys(password)
