@@ -21,6 +21,8 @@ openai.api_key = key
 template = 'i need only python code without any comments inside code, with observing pip8 to solve this problem in code block: '
 username = "Veselayakortoshka"
 password = "Popkapiratbnh79"
+lesson_url = ''
+one_task = -1
 
 
 def answer(s):
