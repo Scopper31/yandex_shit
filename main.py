@@ -18,7 +18,7 @@ from selenium.webdriver.common.by import By
 key = "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"
 openai.api_key = key
 
-template = 'i need only python code without any comments to solve this problem in code block (): '
+template = 'i need only python code (without any comments inside code, with observing pip8) to solve this problem in code block (): '
 username = "Veselayakortoshka"
 password = "Popkapiratbnh79"
 
