@@ -101,6 +101,14 @@ def main():
     driver.find_element("name", "login").submit()
     driver.find_element("name", "passwd").send_keys(password)
     driver.find_element("name", "passwd").submit()
+    w_passwd = 0
+    while 'Неверный пароль' in driver.page_source and w_passwd < 3:
+        print('Неверный пароль')
+        w_passwd += 1
+        passwd = # Сюда пароль вводить во второй раз
+        driver.find_element("name", "passwd").send_keys(passwd)
+        driver.find_element("name", "passwd").submit()
+        time.sleep(1)
     time.sleep(2)
     lesson_html = driver.page_source
     data = lesson_parser(lesson_html)
