@@ -62,7 +62,7 @@ def lines(code):
     code = code.replace(' ** ', '**').replace(' **', '**').replace('** ', '**').replace('**', ' ** ')
     code = code.split('\n')
     for e in code:
-        if e != '\u200b':
+        if '\u200b' not in e:
             ans.append(e + '\n')
         else:
             ans.append('\n')
