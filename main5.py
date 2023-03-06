@@ -132,7 +132,8 @@ def main():
             task_html = driver.page_source
 
         q = []
-        forbidden_class = [['header'], ['sample-tests']]
+        samples = []
+        forbidden_class = [['header']]
 
         soup = BeautifulSoup(task_html, 'html.parser')
         problem_statement = soup.find(class_='problem-statement')
@@ -144,18 +145,16 @@ def main():
             # print(element['class'])
             if element['class'] in forbidden_class:
                 continue
+            if element['class'] == ['sample-tests']:
+                samples.append(list(element.find_all('pre')))
             if len(str.strip(element.text)) != 0:
                 q.append(str.strip(element.text))
 
         q = ''.join(q)
-        print(q)
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        samples = []
-        sample_tests = soup.find_all(class_='sample-tests')
-        for element in sample_tests:
-            el = BeautifulSoup(element, 'html.parser')
-            samples.append(el.find_all('td'))
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        for i in range(len(samples)):
+            samples[i][0] = samples[i][0].text
+            samples[i][1] = samples[i][1].text
+        print(samples)
 
         time.sleep(1)
 
