@@ -59,8 +59,11 @@ def lines(code):
         decode[str(datetime.now())] = e
         code = code.replace(e, str(datetime.now()))
     code = code.split('\n')
-    for e in code:
-        ans.append(e + '\n')
+        for e in code:
+        if len(e) != 0:
+            ans.append(e + '\n')
+        else:
+            ans.append('\n')
     for i in range(len(ans)):
         for e in decode:
             ans[i] = ans[i].replace(e, decode[e])
