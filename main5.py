@@ -58,9 +58,11 @@ def lines(code):
     for e in encode:
         decode[str(datetime.now())] = e
         code = code.replace(e, str(datetime.now()))
+        time.sleep(0.01)
+    code = code.replace(' ** ', '**').replace(' **', '**').replace('** ', '**').replace('**', ' ** ')
     code = code.split('\n')
-        for e in code:
-        if len(e) != 0:
+    for e in code:
+        if e != '\u200b':
             ans.append(e + '\n')
         else:
             ans.append('\n')
@@ -110,6 +112,7 @@ def pep8(code):
         ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
     convert_button = driver.find_element(By.ID, "format-code")
     ActionChains(driver).click(convert_button).perform()
+    time.sleep(3)
     result = list(BeautifulSoup(driver.page_source, 'html.parser').find_all(class_='CodeMirror-line'))
     code_pep8 = '\n'.join([line.text for line in result])
     return code_pep8
