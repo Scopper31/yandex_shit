@@ -216,7 +216,8 @@ def main():
 
             for e in ans:
                 ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
-
+            
+            time.sleep(0.5)
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
                                                            "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
 
