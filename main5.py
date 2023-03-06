@@ -51,16 +51,18 @@ def extract_between(input_string, start_symbol, end_symbol):
 
 def lines(code):
     ans = []
+    code = code.replace(' ** ', '**').replace(' **', '**').replace('** ', '**').replace('**', ' ** ')
     s1 = extract_between(code, "'", "'")
     s2 = extract_between(code, '"', '"')
     decode = dict()
     encode = s1 | s2
+    cnt = 0
     for e in encode:
-        t = str(datetime.now())
+        t = chr(128 + cnt)
         decode[t] = e
         code = code.replace(e, t)
-        time.sleep(0.01)
-    code = code.replace(' ** ', '**').replace(' **', '**').replace('** ', '**').replace('**', ' ** ')
+        cnt += 1
+    print(decode)
     code = code.split('\n')
     for e in code:
         if '\u200b' not in e:
