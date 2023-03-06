@@ -33,6 +33,38 @@ def check_payment():
     return bool(r.get(url, params=data))
 
 
+def extract_between(input_string, start_symbol, end_symbol):
+    substrings = set()
+    start_index = 0
+    while True:
+        start_index = input_string.find(start_symbol, start_index)
+        if start_index == -1:
+            break
+        end_index = input_string.find(end_symbol, start_index + 1)
+        if end_index == -1:
+            break
+        substrings.add(input_string[start_index + 1: end_index])
+        start_index = end_index + 1
+    return substrings
+
+
+def lines(code):
+    ans = []
+    s1 = extract_between(code, "'", "'")
+    s2 = extract_between(code, '"', '"')
+    decode = dict()
+    encode = s1 | s2
+    for e in encode:
+        decode[str(datetime.now())] = e
+        code = code.replace(e, str(datetime.now()))
+    code = code.split('\n')
+    for e in code:
+        ans.append(e + '\n')
+    for i in range(len(ans)):
+        for e in decode:
+            ans[i] = ans[i].replace(e, decode[e])
+    return ans
+
 def remove_comments(src):
     return re.sub('#.*', '', src)
 
@@ -174,11 +206,16 @@ def main():
             ans = pep8(ans)
             print(ans)
             print('-' * 50)
-            pyperclip.copy(ans)
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-code")).perform()
-            ActionChains(driver).key_down('\ue009').send_keys("a").perform()
-            ActionChains(driver).key_down('\ue009').send_keys("v").perform()
-            time.sleep(1)
+            ans = lines(ans)
+            
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
+            ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
+            time.sleep(0.2)
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
+            time.sleep(0.2)
+
+            for e in ans:
+                ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
 
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
                                                            "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
