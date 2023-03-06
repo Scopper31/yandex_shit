@@ -147,7 +147,7 @@ def main():
     while 'Неверный пароль' in driver.page_source and w_passwd < 3:
         print('Неверный пароль')
         w_passwd += 1
-        passwd = # Сюда пароль вводить во второй раз
+        # passwd = # Сюда пароль вводить во второй раз
         driver.find_element("name", "passwd").send_keys(passwd)
         driver.find_element("name", "passwd").submit()
         time.sleep(1)
