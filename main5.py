@@ -56,8 +56,9 @@ def lines(code):
     decode = dict()
     encode = s1 | s2
     for e in encode:
-        decode[str(datetime.now())] = e
-        code = code.replace(e, str(datetime.now()))
+        t = str(datetime.now())
+        decode[t] = e
+        code = code.replace(e, t)
         time.sleep(0.01)
     code = code.replace(' ** ', '**').replace(' **', '**').replace('** ', '**').replace('**', ' ** ')
     code = code.split('\n')
