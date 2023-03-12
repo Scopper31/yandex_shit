@@ -6,6 +6,12 @@ from aiogram.types.message import ContentType
 from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
+from utils import TestStates
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+import sqlite3
+from sqlite3 import Error
+
 
 #https://surik00.gitbooks.io/aiogram-lessons/content/chapter4.html
 logging.basicConfig(level=logging.INFO)
@@ -14,8 +20,10 @@ BOT_TOKEN = '6064341811:AAFJlrN3bV8fHUuL0eO_VbZcKerBH2cH9Io'
 PAYMENTS_TOKEN = '381764678:TEST:51884'
 
 bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher(bot, storage=MemoryStorage())
 
-dp = Dispatcher(bot)
+dp.middleware.setup(LoggingMiddleware())
+
 
 PRICE = types.LabeledPrice(label="Подписка на 1 месяц", amount=1000 * 100)  # в копейках (руб)
 
@@ -25,11 +33,31 @@ button3 = InlineKeyboardButton('Информация', callback_data='info_b')
 
 markup2 = InlineKeyboardMarkup().add(button1).add(button2).add(button3)
 
+
+stop_b = InlineKeyboardButton('Прервать', callback_data='stop')
+stop_markup = InlineKeyboardMarkup().add(stop_b)
+
+login = ''
+passwd = ''
+link = ''
+
+
+
+def add_to_base(email):
+    pass
+
+
+def solve(log, pwd, lin):
+    pass
+
+
 @dp.callback_query_handler(lambda c: c.data == 'buy_b')
 async def process_callback_buy2(callback_query: types.CallbackQuery):
+    await callback_query.message.delete()
     await bot.answer_callback_query(callback_query.id)
     if PAYMENTS_TOKEN.split(':')[1] == 'TEST':
         await bot.send_message(callback_query.from_user.id, "Тестовый платеж!!!")
+        await bot.send_message(callback_query.from_user.id, 'В поле "Доставка" введите логин вашего Яндекс аккаунта с лицеем')
 
     await bot.send_invoice(callback_query.from_user.id,
                            title="Подписка на бота",
@@ -47,21 +75,42 @@ async def process_callback_buy2(callback_query: types.CallbackQuery):
                            payload="test-invoice-payload")
 
 
+@dp.callback_query_handler(lambda c: c.data == 'stop', state=TestStates.all())
+async def process_callback_solve(callback_query: types.CallbackQuery):
+    state = dp.current_state(user=callback_query.from_user.id)
+    await state.reset_state()
+    await bot.send_message(callback_query.from_user.id, 'Ввод данных прерван')
+
+
 @dp.callback_query_handler(lambda c: c.data == 'solve_b')
 async def process_callback_solve(callback_query: types.CallbackQuery):
+    await callback_query.message.delete()
+    state = dp.current_state(user=callback_query.from_user.id)
+    await state.set_state(TestStates.all()[1])
     await bot.answer_callback_query(callback_query.id)
-    await bot.send_message(callback_query.from_user.id, 'Мне нужны твои данные. От банковской карты уже есть. Нужны еще логин и пароль от яндекс аккаунnта с лицеем')
+    await bot.send_message(callback_query.from_user.id, 'Мне нужны твои данные. От банковской карты уже есть. Нужны еще логин и пароль от яндекс аккаунта с лицеем', reply_markup=stop_markup)
+    await bot.send_message(callback_query.from_user.id, 'Логин:')
 
 
 @dp.callback_query_handler(lambda c: c.data == 'info_b')
 async def process_callback_info(callback_query: types.CallbackQuery):
+    await callback_query.message.delete()
     await bot.answer_callback_query(callback_query.id)
+    await bot.send_message(callback_query.from_user.id, 'Информаиция:')
     await bot.send_message(callback_query.from_user.id, 'В другой жизни!')
 
 
 @dp.message_handler(commands=['start', 'menu'])
 async def send_welcome(message: types.Message):
-   await bot.send_message(message.chat.id, "Привет!\nЯ бот-помощник от sanyasupertank!\nЕсли у тебя нет времени решать задачи, я сделаю все за тебя автоматически.", reply_markup=markup2)
+    state = dp.current_state(user=message.from_user.id)
+    await state.reset_state()
+    await bot.send_message(message.chat.id, "Привет!\nЯ бот-помощник от sanyasupertank!\nЕсли у тебя нет времени решать задачи, я сделаю все за тебя автоматически.", reply_markup=markup2)
+
+
+@dp.message_handler(commands=['info'])
+async def send_welcome(message: types.Message):
+    await bot.send_message(message.chat.id, 'мне пока лень(((')
+
 
 @dp.pre_checkout_query_handler(lambda query: True)
 async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery):
@@ -88,12 +137,48 @@ async def successful_payment(message: types.Message):
                            f"Платёж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")
 
 
+@dp.message_handler()
+async def zero_state_msg(msg: types.Message):
+    if 'пидор' in msg.text.lower():
+        await bot.send_message(msg.from_user.id, 'Бога побойся, уёбок')
+    else:
+        await bot.send_message(msg.from_user.id, 'Что ты несешь?')
 
-#commands = {'/start': 'Запустить бота', '/solve': 'Решить задачи', '/buy': 'Решить задачи', '/info': 'Решить задачи', '/menu': 'Решить задачи'}
 
+@dp.message_handler(state=TestStates.TEST_STATE_1[0])
+async def first_test_state_case_met(message: types.Message):
+    global login
+    login = message.text
+    state = dp.current_state(user=message.from_user.id)
+    await state.set_state(TestStates.all()[2])
+    await message.reply('Пароль:', reply=False)
+
+
+@dp.message_handler(state=TestStates.TEST_STATE_2[0])
+async def first_test_state_case_met(message: types.Message):
+    global passwd
+    passwd = message.text
+    state = dp.current_state(user=message.from_user.id)
+    await state.set_state(TestStates.all()[3])
+    await message.reply('Ссылка:', reply=False)
+
+
+@dp.message_handler(state=TestStates.TEST_STATE_3[0])
+async def first_test_state_case_met(message: types.Message):
+    global link
+    link = message.text
+    state = dp.current_state(user=message.from_user.id)
+    await state.reset_state()
+    await message.reply('Погнали!', reply=False)
+    solve(login, passwd, link)
+
+
+async def shutdown(dispatcher: Dispatcher):
+    await dispatcher.storage.close()
+    await dispatcher.storage.wait_closed()
 
 
 #1111 1111 1111 1026, 12/22, CVC 000.
 # run long-polling
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=False)
+    executor.start_polling(dp, on_shutdown=shutdown)
