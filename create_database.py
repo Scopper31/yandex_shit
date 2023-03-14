@@ -43,7 +43,7 @@ def sql_connection():
 # def add_subscriber(con, email):
 #     time_now = datetime.now().date()
 #     half_of_year = timedelta(days=182)
-#     sql_insert_query = f"""INSERT INTO sqlitedb_subscribers VALUES {(email, time_now + half_of_year)}"""
+#     sql_insert_query = f"""INSERT INTO sqlitedb_subscribers VALUES ('{email}', {time_now + half_of_year})"""
 #     cursor = con.cursor()
 #     cursor.execute(sql_insert_query)
 #     con.commit()
