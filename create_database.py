@@ -14,7 +14,7 @@ def sql_connection():
 # def sql_table(con):
 #     sqlite_create_table_query = '''CREATE TABLE sqlitedb_subscribers (
 #                                         email text NOT NULL UNIQUE,
-#                                         ending_date datetime);'''
+#                                         ending_date timestamp);'''
 #     cursor = con.cursor()
 #     cursor.execute(sqlite_create_table_query)
 #     con.commit()
@@ -43,7 +43,9 @@ def sql_connection():
 # def add_subscriber(con, email):
 #     time_now = datetime.now().date()
 #     half_of_year = timedelta(days=182)
-#     sql_insert_query = f"""INSERT INTO sqlitedb_subscribers VALUES ('{email}', {time_now + half_of_year})"""
+#     ending_time = time_now + half_of_year
+#     print(ending_time)
+#     sql_insert_query = f"""INSERT INTO sqlitedb_subscribers VALUES ('{email}', {ending_time})"""
 #     cursor = con.cursor()
 #     cursor.execute(sql_insert_query)
 #     con.commit()
