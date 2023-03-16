@@ -29,14 +29,6 @@ lesson_url = ''
 one_task = -1
 
 
-def check_payment():
-    url = 'bababuy'
-    ime_now = datetime.now().timetuple()
-    time_now = (ime_now[0], ime_now[1], ime_now[2])
-    data = {'login': username, 'time_now': time_now}
-    return bool(r.get(url, params=data))
-
-
 def check_url(url):
     url = url.replace('https://', '')
     url = url.split('/')
@@ -109,7 +101,7 @@ def answer(s):
         model="text-davinci-003",
         prompt=s,
         temperature=0.5,
-        max_tokens=3000,
+        max_tokens=2000,
         top_p=1.0,
         frequency_penalty=0.5,
         presence_penalty=0.0,
@@ -148,11 +140,11 @@ def pep8(code):
     return code_pep8
 
 
-def main():
+def solve(username, passwd, lesson_url):
     lesson_type = 'func/class'
 
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--headless")
+    #chrome_options.add_argument("--headless")
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--disable-extensions")
     driver = webdriver.Chrome(options=chrome_options)
@@ -195,11 +187,14 @@ def main():
         print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         exit(0)
 
+
+    if check_url(lesson_url) == ['task']:
+        data = [lesson_url]
+
     for ind, task_url in enumerate(data):
-        if one_task != -1:
-            if ind + 1 != one_task:
-                continue
         try:
+            if 'не зарегестрированны' in driver.page_source.lower():
+                driver.refresh()
             driver.get(task_url)
         except:
             print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
@@ -355,4 +350,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    solve()
