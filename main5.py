@@ -36,6 +36,28 @@ def check_payment():
     return bool(r.get(url, params=data))
 
 
+def check_url(url):
+    url = url.replace('https://', '')
+    url = url.split('/')
+    domain = url[0]
+    if domain == "lyceum.yandex.ru":
+        if 'courses' == url[1]:
+            if 'groups' == url[3]:
+                if 'lessons' == url[5]:
+                    if 'tasks' == url[7]:
+                        return ['task']
+                    else:
+                        return ['lesson']
+                else:
+                    return "Нужна сслыка на задание/урок, не на курс"
+            else:
+                return "Проверьте ссылку"
+        else:
+            return "Выберите курс и урок, бот работает с задачами, а не с курсами"
+    else:
+        return "Проверьте ссылку"
+
+
 def extract_between(input_string, start_symbol, end_symbol):
     substrings = set()
     start_index = 0
