@@ -20,7 +20,7 @@ key = "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"
 openai.api_key = key
 
 template = 'i need only python code without any comments inside code, with abiding pep8 to solve this problem in code block: '
-sample_template = ["\nAnd for this example:\n", "\nIt outputs this:\n"]
+sample_template = ["\nAnd for this example:\n", "\nIt outputs this:\n", "\nFor example if program gets this input:\n"]
 username = "Veselayakortoshka"
 password = "Popkapiratbnh79"
 lesson_url = ''
