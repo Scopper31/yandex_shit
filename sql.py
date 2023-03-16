@@ -97,3 +97,17 @@ def check_subscribtion(con, mail):
 # mail = input()
 # print(check_subscribtion(sqlite_connection, mail))
 # sqlite_connection.close()
+
+
+def check_existence(con, mail):
+    cursor = con.cursor()
+    info = cursor.execute('SELECT * FROM sqlitedb_subscribers WHERE email=?', (mail,))
+    if info.fetchone() is None:
+        return False
+    else:
+        return True
+
+# sqlite_connection = sql_connection()
+# mail = input()
+# print(check_existence(sqlite_connection, mail))
+# sqlite_connection.close()
