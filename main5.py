@@ -20,6 +20,7 @@ key = "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"
 openai.api_key = key
 
 template = 'i need only python code without any comments inside code, with abiding pep8 to solve this problem in code block: '
+sample_template = ["\nAnd for this example:\n", "\nIt outputs this:\n"]
 username = "Veselayakortoshka"
 password = "Popkapiratbnh79"
 lesson_url = ''
@@ -210,7 +211,14 @@ def main():
         for zzz in range(5):
 
             time.sleep(2)
-            ans = answer(template + q).strip()
+            prompt = template + q
+            if len(samples) > 0:
+                prompt += "\nFor example if program gets this input:\n""
+            for tests in samples:
+                inp = tests[0]
+                out = tests[1]
+                prompt += sample_template[0] + inp + sample_template[1] + out
+            ans = str(answer(prompt).strip())
             print(ans)
             print('-' * 50)
             ans = remove_comments(ans)
