@@ -21,6 +21,7 @@ openai.api_key = key
 
 template = 'i need only python code without any comments inside code, with abiding pep8 to solve this problem in code block: '
 sample_template = ["\nAnd for this example:\n", "\nIt outputs this:\n", "\nFor example if program gets this input:\n"]
+funcclass_template = ["\nAnd this is an example of program that will use your code:\n", "\nAnd this is the output it needs to produce:\n"]
 username = "Veselayakortoshka"
 password = "Popkapiratbnh79"
 lesson_url = ''
@@ -75,8 +76,10 @@ def lines(code):
             ans[i] = ans[i].replace(e, decode[e])
     return ans
 
+
 def remove_comments(src):
     return re.sub('#.*', '', src)
+
 
 def answer(s):
     response = openai.Completion.create(
@@ -163,7 +166,8 @@ def main():
         driver.get(task_url)
         time.sleep(2)
         task_html = driver.page_source
-        if 'Зачтено' in driver.page_source or ('Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
+        if 'Зачтено' in driver.page_source or (
+                'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
             continue
 
         if 'problem-statement' not in task_html:
@@ -220,6 +224,12 @@ def main():
                         f = 1
                     else:
                         prompt += sample_template[0] + inp + sample_template[1] + out
+            elif lesson_type == 'func/class':
+                for tests in samples:
+                    inp = tests[0]
+                    out = tests[1]
+                    prompt += funcclass_template[0] + inp + funcclass_template[1] + out
+                prompt += "\nYou need to write only the code, not the program"
             ans = str(answer(prompt).strip())
             print(ans)
             print('-' * 50)
@@ -230,7 +240,7 @@ def main():
             print(ans)
             print('-' * 50)
             ans = lines(ans)
-            
+
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
             ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
             time.sleep(0.2)
@@ -239,7 +249,7 @@ def main():
 
             for e in ans:
                 ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
-            
+
             time.sleep(0.5)
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
                                                            "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
@@ -250,7 +260,8 @@ def main():
                 time.sleep(3)
                 if 'Доработать' in driver.page_source and t > 10:
                     break
-                if 'Зачтено' in driver.page_source or ('Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
+                if 'Зачтено' in driver.page_source or (
+                        'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
                     shit = 1
                     break
             if shit == 1:
