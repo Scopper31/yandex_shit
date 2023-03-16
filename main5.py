@@ -210,12 +210,13 @@ def main():
 
             time.sleep(2)
             prompt = template + q
-            if len(samples) > 0:
-                prompt += "\nFor example if program gets this input:\n""
-            for tests in samples:
-                inp = tests[0]
-                out = tests[1]
-                prompt += sample_template[0] + inp + sample_template[1] + out
+            if lesson_type == 'program':
+                if len(samples) > 0:
+                    prompt += "\nFor example if program gets this input:\n"
+                for tests in samples:
+                    inp = tests[0]
+                    out = tests[1]
+                    prompt += sample_template[0] + inp + sample_template[1] + out
             ans = str(answer(prompt).strip())
             print(ans)
             print('-' * 50)
