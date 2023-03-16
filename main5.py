@@ -123,11 +123,7 @@ def pep8(code):
 
 
 def main():
-    question = '''
-        Лист за листом, один меньше другого, пока не останется кочерыжка.
-        Напишите класс Cabbage, при инициализации принимающий три аргумента: размер самого верхнего листа, шаг изменения размера при переходе к следующему листу и размер кочерыжки.
-        Класс реализует метод leaf(), который печатает размер следующего листа (меньшего предыдущего на шаг), пока размер листа не меньше кочерыжки, дальше печатается размер кочерыжки.
-        '''
+    lesson_type = 'func/class'
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
@@ -187,6 +183,8 @@ def main():
 
         for element in problem_statement_layer1:
             if element.has_attr('h2') or not element.has_attr('class'):
+                if 'Формат ввода' in element:
+                    lesson_type = 'program'
                 continue
             # print(element['class'])
             if element['class'] in forbidden_class:
