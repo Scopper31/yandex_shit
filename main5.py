@@ -21,7 +21,8 @@ openai.api_key = key
 
 template = 'i need only python code without any comments inside code, with abiding pep8 to solve this problem in code block: '
 sample_template = ["\nAnd for this example:\n", "\nIt outputs this:\n", "\nFor example if program gets this input:\n"]
-funcclass_template = ["\nAnd this is an example of program that will use your code:\n", "\nAnd this is the output it needs to produce:\n"]
+funcclass_template = ["\nAnd this is an example of program that will use your code:\n",
+                      "\nAnd this is the output it needs to produce:\n"]
 username = "Veselayakortoshka"
 password = "Popkapiratbnh79"
 lesson_url = ''
@@ -108,7 +109,7 @@ def answer(s):
         model="text-davinci-003",
         prompt=s,
         temperature=0.5,
-        max_tokens=1000,
+        max_tokens=3000,
         top_p=1.0,
         frequency_penalty=0.5,
         presence_penalty=0.0,
@@ -158,67 +159,100 @@ def main():
     driver.implicitly_wait(30)
     driver.maximize_window()
 
-    driver.get(lesson_url)
-    mail_button = driver.find_element(By.CSS_SELECTOR, "[data-type=login]")
-    button_pressed = mail_button.get_attribute('aria-pressed')
-    if button_pressed == 'false':
-        ActionChains(driver).click(mail_button).perform()
+    try:
+        driver.get(lesson_url)
+        mail_button = driver.find_element(By.CSS_SELECTOR, "[data-type=login]")
+        button_pressed = mail_button.get_attribute('aria-pressed')
+        if button_pressed == 'false':
+            ActionChains(driver).click(mail_button).perform()
+    except:
+        print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        exit(0)
     time.sleep(0.2)
-    driver.find_element("name", "login").send_keys(username)
-    driver.find_element("name", "login").submit()
-    driver.find_element("name", "passwd").send_keys(password)
-    driver.find_element("name", "passwd").submit()
-    w_passwd = 0
-    while 'Неверный пароль' in driver.page_source and w_passwd < 3:
-        print('Неверный пароль')
-        w_passwd += 1
-        # passwd = # Сюда пароль вводить во второй раз
-        driver.find_element("name", "passwd").send_keys(passwd)
+    try:
+        driver.find_element("name", "login").send_keys(username)
+        driver.find_element("name", "login").submit()
+        driver.find_element("name", "passwd").send_keys(password)
         driver.find_element("name", "passwd").submit()
-        time.sleep(1)
+        w_passwd = 0
+        while 'Неверный пароль' in driver.page_source and w_passwd < 3:
+            print('Неверный пароль')
+            w_passwd += 1
+            # passwd = # Сюда пароль вводить во второй раз
+            driver.find_element("name", "passwd").send_keys(passwd)
+            driver.find_element("name", "passwd").submit()
+            time.sleep(1)
+    except:
+        print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        exit(0)
+
     time.sleep(2)
-    lesson_html = driver.page_source
-    data = lesson_parser(lesson_html)
-    print(data)
+    try:
+        lesson_html = driver.page_source
+        data = lesson_parser(lesson_html)
+        print(data)
+    except:
+        print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        exit(0)
 
     for ind, task_url in enumerate(data):
         if one_task != -1:
             if ind + 1 != one_task:
                 continue
-        driver.get(task_url)
+        try:
+            driver.get(task_url)
+        except:
+            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            exit(0)
         time.sleep(2)
-        task_html = driver.page_source
-        if 'Зачтено' in driver.page_source or (
-                'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
-            continue
-
-        if 'problem-statement' not in task_html:
-            ActionChains(driver).click(
-                driver.find_element(By.CLASS_NAME, "y4ef2d--task-description-opener").find_element(By.CLASS_NAME,
-                                                                                                   "nav-tab.nav-tab_view_button")).perform()
-            time.sleep(1)
+        try:
             task_html = driver.page_source
+        except:
+            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            exit(0)
+        try:
+            if 'Зачтено' in driver.page_source or (
+                    'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
+                continue
+
+            if 'problem-statement' not in task_html:
+                ActionChains(driver).click(
+                    driver.find_element(By.CLASS_NAME, "y4ef2d--task-description-opener").find_element(By.CLASS_NAME,
+                                                                                                       "nav-tab.nav-tab_view_button")).perform()
+                time.sleep(1)
+                task_html = driver.page_source
+        except:
+            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            exit(0)
 
         q = []
         samples = []
         forbidden_class = [['header']]
 
-        soup = BeautifulSoup(task_html, 'html.parser')
-        problem_statement = soup.find(class_='problem-statement')
-        problem_statement_layer1 = problem_statement.findChildren(recursive=False)
+        try:
+            soup = BeautifulSoup(task_html, 'html.parser')
+            problem_statement = soup.find(class_='problem-statement')
+            problem_statement_layer1 = problem_statement.findChildren(recursive=False)
+        except:
+            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            exit(0)
 
-        for element in problem_statement_layer1:
-            if element.has_attr('h2') or not element.has_attr('class'):
-                if 'Формат ввода' in element:
-                    lesson_type = 'program'
-                continue
-            # print(element['class'])
-            if element['class'] in forbidden_class:
-                continue
-            if element['class'] == ['sample-tests']:
-                samples.append(list(element.find_all('pre')))
-            if len(str.strip(element.text)) != 0:
-                q.append(str.strip(element.text))
+        try:
+            for element in problem_statement_layer1:
+                if element.has_attr('h2') or not element.has_attr('class'):
+                    if 'Формат ввода' in element:
+                        lesson_type = 'program'
+                    continue
+                # print(element['class'])
+                if element['class'] in forbidden_class:
+                    continue
+                if element['class'] == ['sample-tests']:
+                    samples.append(list(element.find_all('pre')))
+                if len(str.strip(element.text)) != 0:
+                    q.append(str.strip(element.text))
+        except:
+            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            exit(0)
 
         q = ''.join(q)
         for i in range(len(samples)):
@@ -228,9 +262,13 @@ def main():
 
         time.sleep(1)
 
-        if 'Открыть редактор' in task_html:
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                           "Button2.Button2_type_link.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+        try:
+            if 'Открыть редактор' in task_html:
+                ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
+                                                               "Button2.Button2_type_link.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+        except:
+            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            exit(0)
 
         for zzz in range(5):
 
@@ -252,42 +290,68 @@ def main():
                     out = tests[1]
                     prompt += funcclass_template[0] + inp + funcclass_template[1] + out
                 prompt += "\nYou need to write only the code, not the program"
-            ans = str(answer(prompt).strip())
+            try:
+                ans = str(answer(prompt).strip())
+            except:
+                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                exit(0)
+
             print(ans)
             print('-' * 50)
             ans = remove_comments(ans)
             print(ans)
             print('-' * 50)
-            ans = pep8(ans)
+            try:
+                ans = pep8(ans)
+            except:
+                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                exit(0)
             print(ans)
             print('-' * 50)
             ans = lines(ans)
 
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
-            ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
-            time.sleep(0.2)
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
-            time.sleep(0.2)
+            try:
+                ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
+                ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
+                time.sleep(0.2)
+                ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
+                time.sleep(0.2)
+            except:
+                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                exit(0)
 
-            for e in ans:
-                ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
+            try:
+                for e in ans:
+                    ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
+            except:
+                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                exit(0)
 
             time.sleep(0.5)
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                           "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
 
-            shit = 0
-            for t in range(100):
-                driver.refresh()
-                time.sleep(3)
-                if 'Доработать' in driver.page_source and t > 10:
+            try:
+                ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
+                                                           "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+            except:
+                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                exit(0)
+
+            try:
+                shit = 0
+                for t in range(100):
+                    driver.refresh()
+                    time.sleep(3)
+                    if 'Доработать' in driver.page_source and t > 10:
+                        break
+                    if 'Зачтено' in driver.page_source or (
+                            'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
+                        shit = 1
+                        break
+                if shit == 1:
                     break
-                if 'Зачтено' in driver.page_source or (
-                        'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
-                    shit = 1
-                    break
-            if shit == 1:
-                break
+            except:
+                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                exit(0)
 
 
 if __name__ == '__main__':
