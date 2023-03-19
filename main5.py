@@ -1,20 +1,14 @@
-import pyautogui
-from flask import Flask, request
-import logging
-import json
-import os
-import os
+import re
 import time
+from datetime import datetime
+from nltk.tokenize import word_tokenize
 import openai
-import pyperclip
-import webbrowser
 from bs4 import BeautifulSoup
-import requests
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
-import re
-from datetime import datetime
+import torch
+from transformers import AutoTokenizer
 
 key = "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"
 openai.api_key = key
