@@ -243,7 +243,7 @@ def solve(username, passwd, lesson_url):
                     continue
                 if element['class'] == ['sample-tests']:
                     samples.append(list(element.find_all('pre')))
-                if len(str.strip(element.text)) != 0:
+                elif len(str.strip(element.text)) != 0:
                     q.append(str.strip(element.text))
         except:
             print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
