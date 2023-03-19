@@ -103,7 +103,7 @@ def answer(s):
         temperature=0.5,
         max_tokens=4097 - total_tokens(s),
         top_p=1.0,
-        frequency_penalty=0.5,
+        frequency_penalty=0.2,
         presence_penalty=0.0,
     )
     return response["choices"][0]["text"]
