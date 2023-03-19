@@ -1,3 +1,11 @@
+def sql_connection():
+    try:
+        con = sqlite3.connect('sqlite_python.db')
+        return con
+    except Error:
+        print(Error)
+        
+        
 def sql_table(con):
     sqlite_create_table_query = '''CREATE TABLE sqlitedb_subscribers (
                                         email TEXT NOT NULL UNIQUE,
