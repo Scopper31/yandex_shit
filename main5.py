@@ -118,6 +118,8 @@ def pep8(code):
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = lines(code)
@@ -140,9 +142,11 @@ def solve(username, passwd, lesson_url):
     lesson_type = 'func/class'
 
     chrome_options = webdriver.ChromeOptions()
-    #chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless")
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
     driver = webdriver.Chrome(options=chrome_options)
     driver.implicitly_wait(30)
     driver.maximize_window()
