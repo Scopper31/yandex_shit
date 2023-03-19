@@ -266,8 +266,8 @@ def solve(username, passwd, lesson_url):
             if lesson_type == 'program':
                 f = 0
                 for tests in samples:
-                    inp = tests[0]
-                    out = tests[1]
+                    inp = tests[0].strip()
+                    out = tests[1].strip()
                     if f == 0:
                         prompt += sample_template[2] + inp + sample_template[1] + out
                         f = 1
@@ -275,9 +275,9 @@ def solve(username, passwd, lesson_url):
                         prompt += sample_template[0] + inp + sample_template[1] + out
             elif lesson_type == 'func/class':
                 for tests in samples:
-                    inp = tests[0]
-                    out = tests[1]
-                    prompt += funcclass_template[0] + inp + funcclass_template[1] + out
+                    inp = tests[0].strip()
+                    out = tests[1].strip()
+                    prompt += '\n' + funcclass_template[0] + inp + funcclass_template[1] + out + '\n'
                 prompt += "\nYou need to write only the code, not the program calling it"
             try:
                 ans = str(answer(prompt).strip())
