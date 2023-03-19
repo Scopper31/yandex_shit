@@ -13,7 +13,7 @@ from transformers import AutoTokenizer
 key = "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"
 openai.api_key = key
 
-template = 'i need only python code without any comments inside code, with abiding pep8 to solve this problem in code block: '
+template = 'Python, dont write any comments, provide answer in code block\nThe problem: '
 sample_template = ["\nAnd for this example:\n", "\nIt outputs this:\n", "\nFor example if program gets this input:\n"]
 funcclass_template = ["\nAnd this is an example of program that will use your code:\n",
                       "\nAnd this is the output it needs to produce:\n"]
