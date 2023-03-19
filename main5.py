@@ -1,7 +1,6 @@
 import re
 import time
 from datetime import datetime
-from nltk.tokenize import word_tokenize
 import openai
 from bs4 import BeautifulSoup
 from selenium import webdriver
