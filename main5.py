@@ -14,9 +14,9 @@ key = "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"
 openai.api_key = key
 
 template = 'Python, dont write any comments, provide answer in code block\nThe problem: '
-sample_template = ["\nAnd for this example:\n", "\nIt outputs this:\n", "\nFor example if program gets this input:\n"]
-funcclass_template = ["\nAnd this is an example of program that will use your code:\n",
-                      "\nAnd this is the output it needs to produce:\n"]
+sample_template = ["\nFor this example:\n", "\nIt outputs this:\n", "\nFor example if program gets this input:\n"]
+funcclass_template = ["\nAn example of program that might use your code:\n",
+                      "\nOutput it needs to produce:\n"]
 username = "Veselayakortoshka"
 password = "Popkapiratbnh79"
 lesson_url = ''
