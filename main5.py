@@ -284,7 +284,7 @@ def solve(username, passwd, lesson_url):
                     inp = tests[0]
                     out = tests[1]
                     prompt += funcclass_template[0] + inp + funcclass_template[1] + out
-                prompt += "\nYou need to write only the code, not the program"
+                prompt += "\nYou need to write only the code, not the program calling it"
             try:
                 ans = str(answer(prompt).strip())
             except:
