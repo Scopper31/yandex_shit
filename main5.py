@@ -90,12 +90,18 @@ def remove_comments(src):
     return re.sub('#.*', '', src)
 
 
+def total_tokens(s):
+    tokenizer = AutoTokenizer.from_pretrained("gpt2")
+    input_ids = torch.tensor(tokenizer.encode(s)).unsqueeze(0)
+    return len(input_ids[0])
+  
+  
 def answer(s):
     response = openai.Completion.create(
         model="text-davinci-003",
         prompt=s,
         temperature=0.5,
-        max_tokens=2000,
+        max_tokens=4097 - total_tokens(s),
         top_p=1.0,
         frequency_penalty=0.5,
         presence_penalty=0.0,
