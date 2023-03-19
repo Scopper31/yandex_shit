@@ -16,8 +16,6 @@ template = 'Python, dont write any comments, provide answer in code block\nThe p
 sample_template = ["\nFor this example:\n", "\nIt outputs this:\n", "\nFor example if program gets this input:\n"]
 funcclass_template = ["\nAn example of program that might use your code:\n",
                       "\nOutput it needs to produce:\n"]
-username = "Veselayakortoshka"
-password = "Popkapiratbnh79"
 lesson_url = ''
 one_task = -1
 
@@ -289,7 +287,8 @@ def solve(username, passwd, lesson_url):
             except:
                 print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
                 exit(0)
-
+            if ans[0] == '.' or ans[0] == ':':
+                ans = ans[1::].strip()
             print(ans)
             print('-' * 50)
             ans = remove_comments(ans)
