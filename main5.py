@@ -265,8 +265,7 @@ def solve(username, passwd, lesson_url):
 
         try:
             if 'Открыть редактор' in task_html:
-                ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                               "Button2.Button2_type_link.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+                ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_type_link.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             exit(0)
@@ -332,8 +331,7 @@ def solve(username, passwd, lesson_url):
             time.sleep(0.5)
 
             try:
-                ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                           "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+                ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
             except:
                 # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
                 exit(0)
