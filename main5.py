@@ -136,8 +136,8 @@ def pep8(code):
     time.sleep(0.2)
     for e in code:
         ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
-    convert_button = driver.find_element(By.ID, "format-code")
     time.sleep(2)
+    convert_button = driver.find_element(By.ID, "format-code")
     ActionChains(driver).click(convert_button).perform()
     time.sleep(3)
     result = list(BeautifulSoup(driver.page_source, 'html.parser').find_all(class_='CodeMirror-line'))
