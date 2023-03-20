@@ -119,6 +119,7 @@ def pep8(code):
     url = "https://extendsclass.com/python-formatter.html"
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-extensions")
@@ -148,6 +149,7 @@ def solve(username, passwd, lesson_url):
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-gpu")
