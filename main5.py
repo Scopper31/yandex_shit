@@ -71,7 +71,7 @@ def lines(code):
         decode[t] = e
         code = code.replace(e, t)
         cnt += 1
-    print(decode)
+    # print(decode)
     code = code.split('\n')
     for e in code:
         if '\u200b' not in e:
@@ -164,7 +164,7 @@ def solve(username, passwd, lesson_url):
         if button_pressed == 'false':
             ActionChains(driver).click(mail_button).perform()
     except:
-        print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         exit(0)
     time.sleep(0.2)
     try:
@@ -174,21 +174,21 @@ def solve(username, passwd, lesson_url):
         driver.find_element("name", "passwd").submit()
         w_passwd = 0
         while 'Неверный пароль' in driver.page_source and w_passwd < 3:
-            print('Неверный пароль')
+            # print('Неверный пароль')
             w_passwd += 1
             # passwd = # Сюда пароль вводить во второй раз
             driver.find_element("name", "passwd").send_keys(passwd)
             driver.find_element("name", "passwd").submit()
             time.sleep(1)
     except:
-        print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         exit(0)
 
     time.sleep(2)
     try:
         lesson_html = driver.page_source
         data = lesson_parser(lesson_html)
-        print(data)
+        # print(data)
     except:
         print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         exit(0)
@@ -203,13 +203,13 @@ def solve(username, passwd, lesson_url):
                 driver.refresh()
             driver.get(task_url)
         except:
-            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             exit(0)
         time.sleep(2)
         try:
             task_html = driver.page_source
         except:
-            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             exit(0)
         try:
             if 'Зачтено' in driver.page_source or (
@@ -223,7 +223,7 @@ def solve(username, passwd, lesson_url):
                 time.sleep(1)
                 task_html = driver.page_source
         except:
-            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             exit(0)
 
         q = []
@@ -235,7 +235,7 @@ def solve(username, passwd, lesson_url):
             problem_statement = soup.find(class_='problem-statement')
             problem_statement_layer1 = problem_statement.findChildren(recursive=False)
         except:
-            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             exit(0)
 
         try:
@@ -252,14 +252,14 @@ def solve(username, passwd, lesson_url):
                 elif len(str.strip(element.text)) != 0:
                     q.append(str.strip(element.text))
         except:
-            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             exit(0)
 
         q = ''.join(q)
         for i in range(len(samples)):
             samples[i][0] = samples[i][0].text
             samples[i][1] = samples[i][1].text
-        print(samples)
+        # print(samples)
 
         time.sleep(1)
 
@@ -268,7 +268,7 @@ def solve(username, passwd, lesson_url):
                 ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
                                                                "Button2.Button2_type_link.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
         except:
-            print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             exit(0)
 
         for zzz in range(5):
@@ -294,22 +294,22 @@ def solve(username, passwd, lesson_url):
             try:
                 ans = str(answer(prompt).strip())
             except:
-                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
                 exit(0)
             if ans[0] == '.' or ans[0] == ':':
                 ans = ans[1::].strip()
-            print(ans)
-            print('-' * 50)
+            # print(ans)
+            # print('-' * 50)
             ans = remove_comments(ans)
-            print(ans)
-            print('-' * 50)
+            # print(ans)
+            # print('-' * 50)
             try:
                 ans = pep8(ans)
             except:
-                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
                 exit(0)
-            print(ans)
-            print('-' * 50)
+            # print(ans)
+            # print('-' * 50)
             ans = lines(ans)
 
             try:
@@ -319,14 +319,14 @@ def solve(username, passwd, lesson_url):
                 ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
                 time.sleep(0.2)
             except:
-                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
                 exit(0)
 
             try:
                 for e in ans:
                     ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
             except:
-                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
                 exit(0)
 
             time.sleep(0.5)
@@ -335,7 +335,7 @@ def solve(username, passwd, lesson_url):
                 ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
                                                            "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
             except:
-                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
                 exit(0)
 
             try:
@@ -352,7 +352,7 @@ def solve(username, passwd, lesson_url):
                 if shit == 1:
                     break
             except:
-                print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+                # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
                 exit(0)
 
 
