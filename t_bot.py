@@ -126,12 +126,12 @@ async def successful_payment(message: types.Message):
     sql.add_subscriber(sqlite_connection, payment_info['order_info']['email'])
     sqlite_connection.close()
     for k, v in payment_info.items():
+        pass
         #print(f"{k} = {v}")
 
     #print(payment_info)
     #print(message.successful_payment)
-    await bot.send_message(message.chat.id,
-                           f"Платёж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")
+    await bot.send_message(message.chat.id, f"Платёж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")
 
 
 @dp.message_handler()
