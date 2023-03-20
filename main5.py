@@ -89,9 +89,10 @@ def remove_comments(src):
 
 
 def total_tokens(s):
-    tokenizer = AutoTokenizer.from_pretrained("gpt2")
-    input_ids = torch.tensor(tokenizer.encode(s)).unsqueeze(0)
-    return len(input_ids[0])
+    encoding = tiktoken.get_encoding("gpt2")
+    input_ids = encoding.encode(s)
+    print(len(input_ids))
+    return len(input_ids)
   
   
 def answer(s):
