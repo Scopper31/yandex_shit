@@ -108,8 +108,8 @@ async def send_welcome(message: types.Message):
 
 @dp.pre_checkout_query_handler(lambda query: True)
 async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery):
-    print('order_info')
-    print(pre_checkout_q.order_info)
+    #print('order_info')
+    #print(pre_checkout_q.order_info)
     if not hasattr(pre_checkout_q.order_info, 'email'):
         return await bot.answer_pre_checkout_query(
             pre_checkout_q.id,
@@ -120,16 +120,16 @@ async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery):
 
 @dp.message_handler(content_types=ContentType.SUCCESSFUL_PAYMENT)
 async def successful_payment(message: types.Message):
-    print("SUCCESSFUL PAYMENT:")
+    #print("SUCCESSFUL PAYMENT:")
     payment_info = message.successful_payment.to_python()
     sqlite_connection = sql.sql_connection()
     sql.add_subscriber(sqlite_connection, payment_info['order_info']['email'])
     sqlite_connection.close()
     for k, v in payment_info.items():
-        print(f"{k} = {v}")
+        #print(f"{k} = {v}")
 
-    print(payment_info)
-    print(message.successful_payment)
+    #print(payment_info)
+    #print(message.successful_payment)
     await bot.send_message(message.chat.id,
                            f"Платёж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")
 
