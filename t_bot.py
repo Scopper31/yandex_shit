@@ -8,7 +8,9 @@ from aiogram.types.message import ContentType
 from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
-
+import os.path
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import main5
 from utils import TestStates
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
