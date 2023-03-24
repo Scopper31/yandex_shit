@@ -25,8 +25,9 @@ from selenium.webdriver.common.by import By
 import tiktoken
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
+from content import key
 
-key = "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"
+
 openai.api_key = key
 
 template = 'Python, dont write any comments, provide answer in code block\nThe problem: '
