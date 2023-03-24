@@ -160,26 +160,28 @@ async def zero_state_msg(msg: types.Message):
 
 @dp.message_handler(state=TestStates.TEST_STATE_1[0])
 async def first_test_state_case_met(message: types.Message):
-    users_data[f'{message.from_user.id}'] = User()
-    users_data[f'{message.from_user.id}'].login = message.text
+    users_data[message.from_user.id] = User()
+    users_data[message.from_user.id].login = message.text
     print(users_data)
-    await message.delete()
-    await bot.send_message(message.from_user.id, '🆗')
+
     sqlite_connection = sql.sql_connection()
     if not sql.check_existence(sqlite_connection, users_data[message.from_user.id].login):
+        await message.delete()
+        await bot.send_message(message.from_user.id, '❌')
         state = dp.current_state(user=message.from_user.id)
         await state.reset_state()
         await message.reply('У вас нет подписки((( сори', reply=False)
     else:
+        await message.delete()
+        await bot.send_message(message.from_user.id, '🆗')
         state = dp.current_state(user=message.from_user.id)
         await state.set_state(TestStates.all()[2])
-
         await message.reply('Пароль:', reply=False)
 
 
 @dp.message_handler(state=TestStates.TEST_STATE_2[0])
 async def second_test_state_case_met(message: types.Message):
-    users_data[f'{message.from_user.id}'].passwd = message.text
+    users_data[message.from_user.id].passwd = message.text
     await message.delete()
     await bot.send_message(message.from_user.id, '🆗')
     state = dp.current_state(user=message.from_user.id)
@@ -192,14 +194,14 @@ async def second_test_state_case_met(message: types.Message):
 @dp.message_handler(state=TestStates.TEST_STATE_3[0])
 async def third_test_state_case_met(message: types.Message):
 
-    if type(main5.check_url(users_data[f'{message.from_user.id}'].links[-1])) == list:
+    if type(main5.check_url(users_data[message.from_user.id].links[-1])) == list:
         await message.reply('Погнали!', reply=False)
 
-        if len(users_data[f'{message.from_user.id}'].links) == 0:
-            users_data[f'{message.from_user.id}'].links.append(message.text)
+        if len(users_data[message.from_user.id].links) == 0:
+            users_data[message.from_user.id].links.append(message.text)
             await main5.solve(message.from_user.id)
         else:
-            users_data[f'{message.from_user.id}'].links.append(message.text)
+            users_data[message.from_user.id].links.append(message.text)
 
         #await message.reply(f'Задача выполнена', reply=False)
     else:
