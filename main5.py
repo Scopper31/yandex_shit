@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 import tiktoken
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
-from t_bot import users_data
+from t_bot
 
 key = "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"
 openai.api_key = key
@@ -148,9 +148,9 @@ def pep8(code):
 
 def solve(id):
 
-    username = users_data[id].login
-    passwd = users_data[id].passwd
-    data_links = users_data[id].links
+    username = t_bot.users_data[id].login
+    passwd = t_bot.users_data[id].passwd
+    data_links = t_bot.users_data[id].links
 
     while(len(data_links) != 0):
         make_task(data_links[0])
