@@ -227,6 +227,7 @@ def solve(username, passwd, lesson_url):
                 time.sleep(1)
                 task_html = driver.page_source
         except:
+            print(task_html)
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             exit(0)
 
