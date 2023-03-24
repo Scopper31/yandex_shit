@@ -193,7 +193,7 @@ async def second_test_state_case_met(message: types.Message):
     
 @dp.message_handler(state=TestStates.TEST_STATE_3[0])
 async def third_test_state_case_met(message: types.Message):
-    if type(main5.check_url(message.text) == list:
+    if type(main5.check_url(message.text)) == list:
         await message.reply('Погнали!', reply=False)
 
         if len(users_data[message.from_user.id].links) == 0:
