@@ -190,11 +190,10 @@ async def second_test_state_case_met(message: types.Message):
                            'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
                            reply_markup=stop_markup)
 
-
+    
 @dp.message_handler(state=TestStates.TEST_STATE_3[0])
 async def third_test_state_case_met(message: types.Message):
-
-    if type(main5.check_url(users_data[message.from_user.id].links[-1])) == list:
+    if type(main5.check_url(message.text) == list:
         await message.reply('Погнали!', reply=False)
 
         if len(users_data[message.from_user.id].links) == 0:
