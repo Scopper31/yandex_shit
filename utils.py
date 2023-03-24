@@ -8,7 +8,8 @@ class TestStates(Helper):
     TEST_STATE_1 = ListItem()
     TEST_STATE_2 = ListItem()
     TEST_STATE_3 = ListItem()
+    TEST_STATE_4 = ListItem()
 
-
+    
 if __name__ == '__main__':
     print(TestStates.all())
