@@ -166,7 +166,7 @@ async def first_test_state_case_met(message: types.Message):
     await message.delete()
     await bot.send_message(message.from_user.id, '🆗')
     sqlite_connection = sql.sql_connection()
-    if not sql.check_existence(sqlite_connection, users_data['message.from_user.id'].login):
+    if not sql.check_existence(sqlite_connection, users_data[message.from_user.id].login):
         state = dp.current_state(user=message.from_user.id)
         await state.reset_state()
         await message.reply('У вас нет подписки((( сори', reply=False)
