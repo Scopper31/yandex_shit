@@ -175,6 +175,9 @@ def solve(username, passwd, lesson_url):
         driver.find_element("name", "login").send_keys(username)
         driver.find_element("name", "login").submit()
         time.sleep(1)
+        if 'Такого аккаунта нет' in driver.page_source:
+          print('sanya dolbaeb chto-to slomal')
+          exit(0)
         driver.find_element("name", "passwd").send_keys(passwd)
         driver.find_element("name", "passwd").submit()
         w_passwd = 0
