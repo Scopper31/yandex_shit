@@ -179,6 +179,9 @@ def solve(username, passwd, lesson_url):
         if 'Такого аккаунта нет' in driver.page_source:
           print('sanya dolbaeb chto-to slomal')
           exit(0)
+        if 'Логин не указан' in driver.page_source:
+          print('ya dolbaeb chto-to slomal')
+          exit(0)
         driver.find_element("name", "passwd").send_keys(passwd)
         ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
         # driver.find_element("name", "passwd").submit()
