@@ -154,7 +154,7 @@ def solve(username, passwd, lesson_url):
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--disable-extensions")
     # chrome_options.add_argument("--disable-gpu")
-    # chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
     driver = webdriver.Chrome("/root/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
