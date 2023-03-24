@@ -396,9 +396,8 @@ def solve(username, passwd, lesson_url):
     try:
         print(driver.current_url)
         driver.find_element("name", "login").send_keys(username)
-        ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                       "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
-        # driver.find_element("name", "login").submit()
+        # ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
+        driver.find_element("name", "login").submit()
         time.sleep(1)
         print(driver.current_url)
         if 'Такого аккаунта нет' in driver.page_source:
@@ -408,9 +407,8 @@ def solve(username, passwd, lesson_url):
             print('ya dolbaeb chto-to slomal')
             exit(0)
         driver.find_element("name", "passwd").send_keys(passwd)
-        ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                       "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
-        # driver.find_element("name", "passwd").submit()
+        # ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
+        driver.find_element("name", "passwd").submit()
         print(driver.current_url)
         w_passwd = 0
         while 'Неверный пароль' in driver.page_source and w_passwd < 3:
