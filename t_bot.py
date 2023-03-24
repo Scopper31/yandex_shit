@@ -46,7 +46,7 @@ stop_markup = InlineKeyboardMarkup().add(stop_b)
 
 
 class User:
-    def init(self, login='', passwd=''):
+    def __init__(self, login='', passwd=''):
         self.login = login
         self.passwd = passwd
         self.links = []
