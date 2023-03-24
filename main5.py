@@ -174,6 +174,7 @@ def solve(username, passwd, lesson_url):
     try:
         driver.find_element("name", "login").send_keys(username)
         driver.find_element("name", "login").submit()
+        time.sleep(1)
         driver.find_element("name", "passwd").send_keys(passwd)
         driver.find_element("name", "passwd").submit()
         w_passwd = 0
