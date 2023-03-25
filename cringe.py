@@ -68,12 +68,12 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', passwd='', pin=''):
+    def __init__(self, login='', passwd='', pin='', wanna_commit_suicide = ''):
         self.login = login
         self.passwd = passwd
         self.links = []
         self.pin = pin
-
+        self.wanna_commit_suicide = wanna_commit_suicide
 
 users_data = {}
 
@@ -113,6 +113,7 @@ async def process_callback_yes(callback_query: types.CallbackQuery):
 async def first_test_state_case_met(message: types.Message):
     pin = message.text
     users_data[message.from_user.id].pin = pin
+    users_data[message.from_user.id].wanna_commit_suicide = True
 
 
 @dp.callback_query_handler(lambda c: c.data == 'no_call', state=TestStates.all())
@@ -120,6 +121,7 @@ async def process_callback_no(callback_query: types.CallbackQuery):
     state = dp.current_state(user=callback_query.from_user.id)
     await state.reset_state()
     await bot.send_message(callback_query.from_user.id, 'Помянем. Иди в жопу')
+    users_data[callback_query.from_user.id].wanna_commit_suicide = False
 
 
 @dp.callback_query_handler(lambda c: c.data == 'stop', state=TestStates.all())
@@ -385,7 +387,7 @@ def pep8(code):
     return code_pep8
 
 
-def sanya_prover(num, __id):
+async def sanya_prover(num, __id):
     await bot.send_message(__id,
                            f'Твой номер? {num}',
                            reply_markup=num_markup)
@@ -462,7 +464,11 @@ def solve(username, passwd, lesson_url, _id):
         confirm = 0
     if confirm == 1:
         phone_number = str(driver.find_element(By.TAG_NAME, "strong"))
-        if sanya_prover(phone_number, _id):
+        sanya_prover(phone_number, _id)
+        while users_data[_id].wanna_commit_suicide == '':
+            time.sleep(0.2)
+
+        if users_data[_id].wanna_commit_suicide:
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
             time.sleep(1)
             driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").send_keys(users_data[_id].pin)
