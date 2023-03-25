@@ -466,8 +466,13 @@ def solve(username, passwd, lesson_url, _id):
     if confirm == 1:
         phone_number = str(driver.find_element(By.TAG_NAME, "strong"))
         sanya_prover(phone_number, _id)
+        ilya_sosi = 0
         while users_data[_id].wanna_commit_suicide == '':
             time.sleep(0.2)
+            ilya_sosi += 1
+            if ilya_sosi >= 1500:
+                break
+
 
         if users_data[_id].wanna_commit_suicide:
             users_data[_id].wanna_commit_suicide = ''
