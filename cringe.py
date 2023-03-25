@@ -209,7 +209,7 @@ async def zero_state_msg(msg: types.Message):
 async def first_test_state_case_met(message: types.Message):
     users_data[message.from_user.id] = User()
     users_data[message.from_user.id].login = message.text
-    print(users_data)
+    # print(users_data)
 
     sqlite_connection = sql.sql_connection()
     if not sql.check_existence(sqlite_connection, users_data[message.from_user.id].login):
@@ -334,7 +334,7 @@ def remove_comments(src):
 def total_tokens(s):
     encoding = tiktoken.get_encoding("gpt2")
     input_ids = encoding.encode(s)
-    print(len(input_ids))
+    # print(len(input_ids))
     return len(input_ids)
 
 
@@ -445,7 +445,7 @@ def solve(username, passwd, lesson_url, _id):
         driver.find_element("name", "passwd").send_keys(passwd)
         # ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
         driver.find_element("name", "passwd").submit()
-        print(driver.current_url)
+        # print(driver.current_url)
         w_passwd = 0
         while 'Неверный пароль' in driver.page_source and w_passwd < 3:
             # print('Неверный пароль')
@@ -486,7 +486,7 @@ def solve(username, passwd, lesson_url, _id):
         data = lesson_parser(lesson_html)
         # print(data)
     except:
-        print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         exit(0)
 
     if check_url(lesson_url) == ['task']:
@@ -518,8 +518,8 @@ def solve(username, passwd, lesson_url, _id):
                 time.sleep(1)
                 task_html = driver.page_source
         except:
-            print(driver.current_url)
-            print(task_html)
+            # print(driver.current_url)
+            # print(task_html)
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             exit(0)
 
