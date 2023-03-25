@@ -461,7 +461,7 @@ def solve(username, passwd, lesson_url, _id):
     try:
         elem = driver.find_element("data-t", "challenge_sumbit_phone-confirmation")
         confirm = 1
-    except NoSuchElementException:
+    except:
         confirm = 0
     if confirm == 1:
         phone_number = str(driver.find_element(By.TAG_NAME, "strong"))
