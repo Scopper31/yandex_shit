@@ -421,8 +421,19 @@ def solve(username, passwd, lesson_url):
     except:
         # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         exit(0)
-
     time.sleep(2)
+    try:
+        elem = driver.find_element("data-t", "challenge_sumbit_phone-confirmation")
+        confirm = 1
+    except NoSuchElementException:
+        confirm = 0
+    if confirm == 1:
+        phone_number = str(driver.find_element(By.TAG_NAME, "strong"))
+        if sanya_prover(phone_number):
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
+            time.sleep(1)
+            driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").send_keys(sms_code)
+            driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").submit()
     try:
         lesson_html = driver.page_source
         data = lesson_parser(lesson_html)
