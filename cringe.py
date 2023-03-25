@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 import config
 import logging
-from selenium.common.exceptions import NoSuchElementException
+
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types.message import ContentType
 from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
+from selenium.common import NoSuchElementException
+
 from utils import TestStates
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
@@ -60,12 +62,17 @@ markup2 = InlineKeyboardMarkup().add(button1).add(button2).add(button3)
 stop_b = InlineKeyboardButton('Прервать', callback_data='stop')
 stop_markup = InlineKeyboardMarkup().add(stop_b)
 
+yes_b = InlineKeyboardButton('Да', callback_data='yes_call')
+no_b = InlineKeyboardButton('Нет', callback_data='no_call')
+num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
+
 
 class User:
-    def __init__(self, login='', passwd=''):
+    def __init__(self, login='', passwd='', pin=''):
         self.login = login
         self.passwd = passwd
         self.links = []
+        self.pin = pin
 
 
 users_data = {}
@@ -95,8 +102,28 @@ async def process_callback_buy2(callback_query: types.CallbackQuery):
                            payload="test-invoice-payload")
 
 
+@dp.callback_query_handler(lambda c: c.data == 'yes_call', state=TestStates.all())
+async def process_callback_yes(callback_query: types.CallbackQuery):
+    state = dp.current_state(user=callback_query.from_user.id)
+    await state.set_state(TestStates.all()[5])
+    await bot.send_message(callback_query.from_user.id, 'Гони пинкод')
+
+
+@dp.message_handler(state=TestStates.TEST_STATE_5[0])
+async def first_test_state_case_met(message: types.Message):
+    pin = message.text
+    users_data[message.from_user.id].pin = pin
+
+
+@dp.callback_query_handler(lambda c: c.data == 'no_call', state=TestStates.all())
+async def process_callback_no(callback_query: types.CallbackQuery):
+    state = dp.current_state(user=callback_query.from_user.id)
+    await state.reset_state()
+    await bot.send_message(callback_query.from_user.id, 'Помянем. Иди в жопу')
+
+
 @dp.callback_query_handler(lambda c: c.data == 'stop', state=TestStates.all())
-async def process_callback_solve(callback_query: types.CallbackQuery):
+async def process_callback_stop(callback_query: types.CallbackQuery):
     state = dp.current_state(user=callback_query.from_user.id)
     await state.reset_state()
     await bot.send_message(callback_query.from_user.id, 'Ввод данных прерван')
@@ -358,16 +385,22 @@ def pep8(code):
     return code_pep8
 
 
+def sanya_prover(num, __id):
+    await bot.send_message(__id,
+                           f'Твой номер? {num}',
+                           reply_markup=num_markup)
+
+
 def make_task(id):
     _username = users_data[id].login
     _passwd = users_data[id].passwd
     _data_links = users_data[id].links
     while (len(_data_links) != 0):
-        solve(_username, _passwd, _data_links[0])
+        solve(_username, _passwd, _data_links[0], id)
         _data_links.pop(0)
 
 
-def solve(username, passwd, lesson_url):
+def solve(username, passwd, lesson_url, _id):
     lesson_type = 'func/class'
 
     chrome_options = webdriver.ChromeOptions()
@@ -429,10 +462,10 @@ def solve(username, passwd, lesson_url):
         confirm = 0
     if confirm == 1:
         phone_number = str(driver.find_element(By.TAG_NAME, "strong"))
-        if sanya_prover(phone_number):
+        if sanya_prover(phone_number, _id):
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
             time.sleep(1)
-            driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").send_keys(sms_code)
+            driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").send_keys(users_data[_id].pin)
             driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").submit()
     try:
         lesson_html = driver.page_source
