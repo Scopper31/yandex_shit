@@ -9,6 +9,7 @@ class TestStates(Helper):
     TEST_STATE_2 = ListItem()
     TEST_STATE_3 = ListItem()
     TEST_STATE_4 = ListItem()
+    TEST_STATE_5 = ListItem()
 
     
 if __name__ == '__main__':
