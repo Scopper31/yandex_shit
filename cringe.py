@@ -394,7 +394,7 @@ async def sanya_prover(num, __id):
                            reply_markup=num_markup)
 
 
-def make_task(id):
+async def make_task(id):
     _username = users_data[id].login
     _passwd = users_data[id].passwd
     _data_links = users_data[id].links
