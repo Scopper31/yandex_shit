@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import config
 import logging
-
+from selenium.common.exceptions import NoSuchElementException
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types.message import ContentType
 from aiogram.types import ReplyKeyboardRemove, \
