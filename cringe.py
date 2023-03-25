@@ -75,6 +75,7 @@ class User:
         self.pin = pin
         self.wanna_commit_suicide = wanna_commit_suicide
 
+
 users_data = {}
 
 
@@ -469,10 +470,12 @@ def solve(username, passwd, lesson_url, _id):
             time.sleep(0.2)
 
         if users_data[_id].wanna_commit_suicide:
+            users_data[_id].wanna_commit_suicide = ''
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
             time.sleep(1)
             driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").send_keys(users_data[_id].pin)
             driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").submit()
+            users_data[_id].pin = ''
     try:
         lesson_html = driver.page_source
         data = lesson_parser(lesson_html)
