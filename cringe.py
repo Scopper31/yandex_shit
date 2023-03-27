@@ -425,29 +425,21 @@ async def make_task(id):
 def solve(username, passwd, lesson_url, _id):
     lesson_type = 'func/class'
 
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--start-maximized")
-    chrome_options.add_argument("--incognito")
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument('--crash-dumps-dir=/tmp')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
-    # driver = webdriver.Chrome(options=chrome_options)
-    driver.implicitly_wait(30)
-    driver.maximize_window()
+    driver = users_data[_id]["driver"]
 
     try:
         driver.get(lesson_url)
+        """
         mail_button = driver.find_element(By.CSS_SELECTOR, "[data-type=login]")
         button_pressed = mail_button.get_attribute('aria-pressed')
         if button_pressed == 'false':
             ActionChains(driver).click(mail_button).perform()
+        """
     except:
         # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         exit(0)
     time.sleep(0.2)
+    """
     try:
         print(driver.current_url)
         driver.find_element("name", "login").send_keys(username)
@@ -500,6 +492,7 @@ def solve(username, passwd, lesson_url, _id):
             driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").send_keys(users_data[_id].pin)
             driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").submit()
             users_data[_id].pin = ''
+    """
     try:
         lesson_html = driver.page_source
         data = lesson_parser(lesson_html)
