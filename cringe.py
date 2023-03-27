@@ -281,21 +281,18 @@ def check_url(url):
     url = url.split('/')
     domain = url[0]
     if domain == "lyceum.yandex.ru":
-        if 'courses' == url[1]:
-            if 'groups' == url[3]:
-                if 'lessons' == url[5]:
-                    if 'tasks' == url[7]:
-                        return ['task']
-                    else:
-                        return ['lesson']
-                else:
-                    return "Нужна сслыка на задание/урок, не на курс"
-            else:
-                return "Проверьте ссылку"
-        else:
-            return "Выберите курс и урок, бот работает с задачами, а не с курсами"
-    else:
-        return "Проверьте ссылку"
+        if len(url) >= 1:
+            if 'courses' == url[1]:
+                if len(url) >= 3:
+                    if 'groups' == url[3]:
+                        if len(url) >= 5:
+                            if 'lessons' == url[5]:
+                                if len(url) >= 7:
+                                    if 'tasks' == url[7]:
+                                        return ['task']
+                                    else:
+                                        return ['lesson']
+    return "Проверьте ссылку"
 
 
 # Вычленяет код между двумя задаными символами
