@@ -268,6 +268,19 @@ async def shutdown(dispatcher: Dispatcher):
 #1111 1111 1111 1026, 12/22, CVC 000.
 # run long-polling
 
+
+def check_after_qr(id):
+    driver = users_data[id].driver
+    yandex_user_data = driver.page_source
+    k = yandex_user_data.find(""""username":""") + len(""""username":""") + 1
+    yandex_user_data = yandex_user_data[k:k + 100:]
+    username = yandex_user_data.split('"')[0]
+    if username in #База данных:
+        # OK
+    else:
+        # poshel nahuy
+
+
 async def login_qr(id):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
