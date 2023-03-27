@@ -54,7 +54,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', passwd='', pin='', wanna_commit_suicide='', driver='', qr_code=''):
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code=''):
         self.login = login
         self.links = []
         self.driver = driver
@@ -122,13 +122,32 @@ async def process_callback_stop(callback_query: types.CallbackQuery):
 @dp.callback_query_handler(lambda c: c.data == 'solve_b')
 async def process_callback_solve(callback_query: types.CallbackQuery):
     await callback_query.message.delete()
+    users_data[callback_query.from_user.id] = User()
     state = dp.current_state(user=callback_query.from_user.id)
-    await state.set_state(TestStates.all()[1])
-    await bot.answer_callback_query(callback_query.id)
-    await bot.send_message(callback_query.from_user.id,
-                           'Мне нужны твои данные. От банковской карты уже есть. Нужны еще логин и пароль от яндекс аккаунта с лицеем',
-                           reply_markup=stop_markup)
-    await bot.send_message(callback_query.from_user.id, 'Логин:')
+    await bot.send_message(callback_query.from_user.id, 'Подтверждай вход через QR код')
+    await login_qr(callback_query.from_user.id)
+    await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
+    driver = users_data[callback_query.from_user.id].driver
+    qr_url = driver.current_url
+    while driver.current_url == qr_url:
+        if 'Внутренняя ошибка: обновите страницу и попробуйте еще раз' in driver.page_source:
+            await state.reset_state()
+            await bot.send_message(callback_query.from_user.id, 'Давай по новой')
+            return
+        time.sleep(1)
+    users_login(callback_query.from_user.id)
+    sqlite_connection = sql.sql_connection()
+    if not sql.check_existence(sqlite_connection, users_data[callback_query.from_user.id].login):
+        await bot.send_message(callback_query.from_user.id, '❌')
+        state = dp.current_state(user=callback_query.from_user.id)
+        await state.reset_state()
+        await bot.send_message(callback_query.from_user.id, 'У вас нет подписки((( сори')
+    else:
+        await bot.send_message(callback_query.from_user.id, '🆗')
+        await state.set_state(TestStates.all()[1])
+        await bot.send_message(callback_query.from_user.id,
+                               'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
+                               reply_markup=stop_markup)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'info_b')
@@ -197,41 +216,6 @@ async def zero_state_msg(msg: types.Message):
 
 
 @dp.message_handler(state=TestStates.TEST_STATE_1[0])
-async def first_test_state_case_met(message: types.Message):
-    users_data[message.from_user.id] = User()
-    users_data[message.from_user.id].login = message.text
-    # print(users_data)
-
-    sqlite_connection = sql.sql_connection()
-    if not sql.check_existence(sqlite_connection, users_data[message.from_user.id].login):
-        await message.delete()
-        await bot.send_message(message.from_user.id, '❌')
-        state = dp.current_state(user=message.from_user.id)
-        await state.reset_state()
-        await message.reply('У вас нет подписки((( сори', reply=False)
-    else:
-        await message.delete()
-        await bot.send_message(message.from_user.id, '🆗')
-        state = dp.current_state(user=message.from_user.id)
-        await message.reply('Подтверждай вход через QR код', reply=False)
-        await login_qr(message.from_user.id)
-        await bot.send_photo(message.from_user.id, photo=users_data[message.from_user.id].qr_code)
-        driver = users_data[message.from_user.id].driver
-        qr_url = driver.current_url
-        while driver.current_url == qr_url:
-            if 'Внутренняя ошибка: обновите страницу и попробуйте еще раз' in driver.page_source:
-                await state.reset_state()
-                await message.reply('Давай по новой', reply=False)
-                return
-            time.sleep(1)
-        await bot.send_message(message.from_user.id, '🆗')
-        await state.set_state(TestStates.all()[2])
-        await bot.send_message(message.from_user.id,
-                               'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
-                               reply_markup=stop_markup)
-
-
-@dp.message_handler(state=TestStates.TEST_STATE_3[0])
 async def third_test_state_case_met(message: types.Message):
     if type(check_url(message.text)) == list:
         await message.reply('Погнали!', reply=False)
@@ -257,21 +241,19 @@ async def shutdown(dispatcher: Dispatcher):
 # run long-polling
 
 # Проверка что чел у нас в базе
-def check_after_qr(id):
-    driver = users_data[id].driver
+def users_login(_id):
+    driver = users_data[_id].driver
     yandex_user_data = driver.page_source
     k = yandex_user_data.find(""""username":""") + len(""""username":""") + 1
     yandex_user_data = yandex_user_data[k:k + 100:]
     username = yandex_user_data.split('"')[0]
-    if username in  # База данных:
-    # OK
-    else:
+    users_data[_id].login = username
 
 
 # poshel nahuy
 
 # Создание сесии, добавляет qr и driver(сессию) в users_data
-async def login_qr(id):
+async def login_qr(_id):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--start-maximized")
@@ -288,9 +270,9 @@ async def login_qr(id):
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
     time.sleep(1)
     qr = driver_login.find_element(By.CLASS_NAME, "MagicField-qr").screenshot_as_png
-    users_data[id].driver = driver_login
+    users_data[_id].driver = driver_login
     qr = BytesIO(qr)
-    users_data[id].qr_code = qr
+    users_data[_id].qr_code = qr
 
 
 # Проверка что ссылка на яндекс, возвращает урок или задание (задание - ["task"], урок - ["lesson"]
@@ -427,10 +409,10 @@ def pep8(code):
 
 
 # Реализация очереди
-async def make_task(id):
-    _data_links = users_data[id].links
+async def make_task(_id):
+    _data_links = users_data[_id].links
     while (len(_data_links) != 0):
-        solve(_data_links[0], id)
+        solve(_data_links[0], _id)
         _data_links.pop(0)
 
 
