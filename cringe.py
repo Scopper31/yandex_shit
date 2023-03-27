@@ -425,7 +425,7 @@ async def make_task(id):
 def solve(username, passwd, lesson_url, _id):
     lesson_type = 'func/class'
 
-    driver = users_data[_id]["driver"]
+    driver = users_data[_id].driver
 
     try:
         driver.get(lesson_url)
