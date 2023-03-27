@@ -9,7 +9,7 @@ from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
 from selenium.common import NoSuchElementException
-import io
+from io import BytesIO
 from utils import TestStates
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
@@ -28,6 +28,7 @@ import tiktoken
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
 from content import key
+import PIL
 
 
 openai.api_key = key
@@ -68,11 +69,13 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', passwd='', pin='', wanna_commit_suicide = ''):
+    def __init__(self, login='', passwd='', pin='', wanna_commit_suicide='', driver='', qr_code=''):
         self.login = login
         self.passwd = passwd
         self.links = []
         self.pin = pin
+        self.driver = driver
+        self.qr_code = qr_code
         self.wanna_commit_suicide = wanna_commit_suicide
 
 
@@ -222,20 +225,22 @@ async def first_test_state_case_met(message: types.Message):
         await message.delete()
         await bot.send_message(message.from_user.id, '🆗')
         state = dp.current_state(user=message.from_user.id)
+        await message.reply('Подтверждай вход через QR код', reply=False)
+        await login_qr(message.from_user.id)
+        await bot.send_photo(message.from_user.id, photo=users_data[message.from_user.id].qr_code)
+        driver = users_data[message.from_user.id].driver
+        qr_url = driver.current_url
+        while driver.current_url == qr_url:
+            if 'Внутренняя ошибка: обновите страницу и попробуйте еще раз' in driver.page_source:
+                await state.reset_state()
+                await message.reply('Давай по новой', reply=False)
+                return
+            time.sleep(1)
+        await bot.send_message(message.from_user.id, '🆗')
         await state.set_state(TestStates.all()[2])
-        await message.reply('Пароль:', reply=False)
-
-
-@dp.message_handler(state=TestStates.TEST_STATE_2[0])
-async def second_test_state_case_met(message: types.Message):
-    users_data[message.from_user.id].passwd = message.text
-    await message.delete()
-    await bot.send_message(message.from_user.id, '🆗')
-    state = dp.current_state(user=message.from_user.id)
-    await state.set_state(TestStates.all()[3])
-    await bot.send_message(message.from_user.id,
-                           'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
-                           reply_markup=stop_markup)
+        await bot.send_message(message.from_user.id,
+                               'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
+                               reply_markup=stop_markup)
 
 
 @dp.message_handler(state=TestStates.TEST_STATE_3[0])
@@ -263,17 +268,7 @@ async def shutdown(dispatcher: Dispatcher):
 #1111 1111 1111 1026, 12/22, CVC 000.
 # run long-polling
 
-
-def check_after_qr(id):
-    driver = users_data[id].driver
-    yandex_user_data = driver.find_element("window.INITIAL_STATE")
-    if yandex_user_data["users"]["user"]["username"] in #База данных:
-        # OK
-    else:
-        # poshel nahuy
-
-
-def login(id):
+async def login_qr(id):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--start-maximized")
@@ -283,15 +278,16 @@ def login(id):
     chrome_options.add_experimental_option("detach", True)
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver_login = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
+    driver_login = webdriver.Chrome(options=chrome_options)
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
     time.sleep(1)
     qr = driver_login.find_element(By.CLASS_NAME, "MagicField-qr").screenshot_as_png
-    user_data[id]["driver"] = driver_login
-    qr = io.BytesIO(qr)
-    return qr
+    users_data[id].driver = driver_login
+    qr = BytesIO(qr)
+    users_data[id].qr_code = qr
+
 
 def check_url(url):
     url = url.replace('https://', '')
@@ -397,7 +393,7 @@ def pep8(code):
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = lines(code)
@@ -439,70 +435,11 @@ def solve(username, passwd, lesson_url, _id):
 
     try:
         driver.get(lesson_url)
-        """
-        mail_button = driver.find_element(By.CSS_SELECTOR, "[data-type=login]")
-        button_pressed = mail_button.get_attribute('aria-pressed')
-        if button_pressed == 'false':
-            ActionChains(driver).click(mail_button).perform()
-        """
     except:
         # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         exit(0)
     time.sleep(0.2)
-    """
-    try:
-        print(driver.current_url)
-        driver.find_element("name", "login").send_keys(username)
-        # ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
-        driver.find_element("name", "login").submit()
-        time.sleep(1)
-        print(driver.current_url)
-        if 'Такого аккаунта нет' in driver.page_source:
-            print('sanya dolbaeb chto-to slomal')
-            exit(0)
-        if 'Логин не указан' in driver.page_source:
-            print('ya dolbaeb chto-to slomal')
-            exit(0)
-        driver.find_element("name", "passwd").send_keys(passwd)
-        # ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
-        driver.find_element("name", "passwd").submit()
-        # print(driver.current_url)
-        w_passwd = 0
-        while 'Неверный пароль' in driver.page_source and w_passwd < 3:
-            # print('Неверный пароль')
-            w_passwd += 1
-            # passwd = # Сюда пароль вводить во второй раз
-            driver.find_element("name", "passwd").send_keys(passwd)
-            driver.find_element("name", "passwd").submit()
-            time.sleep(1)
-    except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        exit(0)
-    time.sleep(2)
-    try:
-        elem = driver.find_element("data-t", "challenge_sumbit_phone-confirmation")
-        confirm = 1
-    except:
-        confirm = 0
-    if confirm == 1:
-        phone_number = str(driver.find_element(By.TAG_NAME, "strong"))
-        sanya_prover(phone_number, _id)
-        ilya_sosi = 0
-        while users_data[_id].wanna_commit_suicide == '':
-            time.sleep(0.2)
-            ilya_sosi += 1
-            if ilya_sosi >= 1500:
-                break
 
-
-        if users_data[_id].wanna_commit_suicide:
-            users_data[_id].wanna_commit_suicide = ''
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l.Button2_view_action.Button2_width_max.Button2_type_submit")).perform()
-            time.sleep(1)
-            driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").send_keys(users_data[_id].pin)
-            driver.find_element(By.CLASS_NAME, "CodeField-visualContent.CodeField-visualContent_size_normal").submit()
-            users_data[_id].pin = ''
-    """
     try:
         lesson_html = driver.page_source
         data = lesson_parser(lesson_html)
@@ -673,7 +610,6 @@ def solve(username, passwd, lesson_url, _id):
             except:
                 # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
                 exit(0)
-
 
 if __name__ == "__main__":
     executor.start_polling(dp, on_shutdown=shutdown)
