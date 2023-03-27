@@ -9,7 +9,7 @@ from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
 from selenium.common import NoSuchElementException
-
+import io
 from utils import TestStates
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
@@ -280,6 +280,7 @@ def login(id):
     time.sleep(1)
     qr = driver_login.find_element(By.CLASS_NAME, "MagicField-qr").screenshot_as_png
     user_data[id]["driver"] = driver_login
+    qr = io.BytesIO(qr)
     return qr
 
 def check_url(url):
