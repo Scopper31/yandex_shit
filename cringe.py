@@ -263,6 +263,24 @@ async def shutdown(dispatcher: Dispatcher):
 #1111 1111 1111 1026, 12/22, CVC 000.
 # run long-polling
 
+def login(id):
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_experimental_option("detach", True)
+    chrome_options.add_argument('--crash-dumps-dir=/tmp')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    driver_login = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
+    driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
+    ActionChains(driver_login).click(
+        driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
+    time.sleep(1)
+    qr = driver_login.find_element(By.CLASS_NAME, "MagicField-qr").screenshot_as_png
+    user_data[id]["driver"] = driver_login
+    return qr
 
 def check_url(url):
     url = url.replace('https://', '')
