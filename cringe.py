@@ -1,35 +1,23 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import config
 import logging
-
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types.message import ContentType
-from aiogram.types import ReplyKeyboardRemove, \
-    ReplyKeyboardMarkup, KeyboardButton, \
-    InlineKeyboardMarkup, InlineKeyboardButton
-from selenium.common import NoSuchElementException
-from io import BytesIO
-from utils import TestStates
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.contrib.middlewares.logging import LoggingMiddleware
-import sqlite3
-from sqlite3 import Error
-import sql
 import re
 import time
-from datetime import datetime
+from io import BytesIO
 import openai
+import sql
+import tiktoken
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types.message import ContentType
 from bs4 import BeautifulSoup
+from content import key
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
-import tiktoken
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service as ChromeService
-from content import key
-import PIL
-
+from utils import TestStates
 
 openai.api_key = key
 
@@ -38,7 +26,6 @@ sample_template = ["\nFor this example:\n", "\nIt outputs this:\n", "\nFor examp
 funcclass_template = ["\nAn example of program that might use your code:\n",
                       "\nOutput it needs to produce:\n"]
 one_task = -1
-
 
 logging.basicConfig(level=logging.INFO)
 
@@ -50,7 +37,6 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 
 dp.middleware.setup(LoggingMiddleware())
 
-
 PRICE = types.LabeledPrice(label="Подписка на 1 месяц", amount=1000 * 100)  # в копейках (руб)
 
 button1 = InlineKeyboardButton('Купить подписку', callback_data='buy_b')
@@ -58,7 +44,6 @@ button2 = InlineKeyboardButton('Решить задачи', callback_data='solve
 button3 = InlineKeyboardButton('Информация', callback_data='info_b')
 
 markup2 = InlineKeyboardMarkup().add(button1).add(button2).add(button3)
-
 
 stop_b = InlineKeyboardButton('Прервать', callback_data='stop')
 stop_markup = InlineKeyboardMarkup().add(stop_b)
@@ -71,9 +56,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 class User:
     def __init__(self, login='', passwd='', pin='', wanna_commit_suicide='', driver='', qr_code=''):
         self.login = login
-        self.passwd = passwd
         self.links = []
-        self.pin = pin
         self.driver = driver
         self.qr_code = qr_code
         self.wanna_commit_suicide = wanna_commit_suicide
@@ -88,7 +71,8 @@ async def process_callback_buy2(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     if PAYMENTS_TOKEN.split(':')[1] == 'TEST':
         await bot.send_message(callback_query.from_user.id, "Тестовый платеж!!!")
-        await bot.send_message(callback_query.from_user.id, 'В поле "Доставка" введите логин вашего Яндекс аккаунта с лицеем')
+        await bot.send_message(callback_query.from_user.id,
+                               'В поле "Доставка" введите логин вашего Яндекс аккаунта с лицеем')
 
     await bot.send_invoice(callback_query.from_user.id,
                            title="Подписка на бота",
@@ -141,9 +125,10 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
     state = dp.current_state(user=callback_query.from_user.id)
     await state.set_state(TestStates.all()[1])
     await bot.answer_callback_query(callback_query.id)
-    await bot.send_message(callback_query.from_user.id, 'Мне нужны твои данные. От банковской карты уже есть. Нужны еще логин и пароль от яндекс аккаунта с лицеем', reply_markup=stop_markup)
+    await bot.send_message(callback_query.from_user.id,
+                           'Мне нужны твои данные. От банковской карты уже есть. Нужны еще логин и пароль от яндекс аккаунта с лицеем',
+                           reply_markup=stop_markup)
     await bot.send_message(callback_query.from_user.id, 'Логин:')
-
 
 
 @dp.callback_query_handler(lambda c: c.data == 'info_b')
@@ -158,7 +143,9 @@ async def process_callback_info(callback_query: types.CallbackQuery):
 async def send_welcome(message: types.Message):
     state = dp.current_state(user=message.from_user.id)
     await state.reset_state()
-    await bot.send_message(message.chat.id, "Привет!\nЯ бот-помощник от sanyasupertank и popkapirat!\nЕсли у тебя нет времени решать задачи, я сделаю все за тебя автоматически.", reply_markup=markup2)
+    await bot.send_message(message.chat.id,
+                           "Привет!\nЯ бот-помощник от sanyasupertank и popkapirat!\nЕсли у тебя нет времени решать задачи, я сделаю все за тебя автоматически.",
+                           reply_markup=markup2)
 
 
 @dp.message_handler(commands=['info'])
@@ -168,8 +155,8 @@ async def send_welcome(message: types.Message):
 
 @dp.pre_checkout_query_handler(lambda query: True)
 async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery):
-    #print('order_info')
-    #print(pre_checkout_q.order_info)
+    # print('order_info')
+    # print(pre_checkout_q.order_info)
     if not hasattr(pre_checkout_q.order_info, 'email'):
         return await bot.answer_pre_checkout_query(
             pre_checkout_q.id,
@@ -180,18 +167,19 @@ async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery):
 
 @dp.message_handler(content_types=ContentType.SUCCESSFUL_PAYMENT)
 async def successful_payment(message: types.Message):
-    #print("SUCCESSFUL PAYMENT:")
+    # print("SUCCESSFUL PAYMENT:")
     payment_info = message.successful_payment.to_python()
     sqlite_connection = sql.sql_connection()
     sql.add_subscriber(sqlite_connection, payment_info['order_info']['email'])
     sqlite_connection.close()
     for k, v in payment_info.items():
         pass
-        #print(f"{k} = {v}")
+        # print(f"{k} = {v}")
 
-    #print(payment_info)
-    #print(message.successful_payment)
-    await bot.send_message(message.chat.id, f"Платёж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")
+    # print(payment_info)
+    # print(message.successful_payment)
+    await bot.send_message(message.chat.id,
+                           f"Платёж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")
 
 
 @dp.message_handler()
@@ -254,7 +242,7 @@ async def third_test_state_case_met(message: types.Message):
         else:
             users_data[message.from_user.id].links.append(message.text)
 
-        #await message.reply(f'Задача выполнена', reply=False)
+        # await message.reply(f'Задача выполнена', reply=False)
     else:
         await message.delete()
         await message.reply('Ссылка говно!', reply=False)
@@ -265,22 +253,24 @@ async def shutdown(dispatcher: Dispatcher):
     await dispatcher.storage.wait_closed()
 
 
-#1111 1111 1111 1026, 12/22, CVC 000.
+# 1111 1111 1111 1026, 12/22, CVC 000.
 # run long-polling
 
-
+# Проверка что чел у нас в базе
 def check_after_qr(id):
     driver = users_data[id].driver
     yandex_user_data = driver.page_source
     k = yandex_user_data.find(""""username":""") + len(""""username":""") + 1
     yandex_user_data = yandex_user_data[k:k + 100:]
     username = yandex_user_data.split('"')[0]
-    if username in #База данных:
-        # OK
+    if username in  # База данных:
+    # OK
     else:
-        # poshel nahuy
 
 
+# poshel nahuy
+
+# Создание сесии, добавляет qr и driver(сессию) в users_data
 async def login_qr(id):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
@@ -288,10 +278,11 @@ async def login_qr(id):
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_experimental_option("detach", True)
+    # chrome_options.add_experimental_option("detach", True)
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver_login = webdriver.Chrome(options=chrome_options)
+    driver_login = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver",
+                                    options=chrome_options)
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
@@ -302,6 +293,7 @@ async def login_qr(id):
     users_data[id].qr_code = qr
 
 
+# Проверка что ссылка на яндекс, возвращает урок или задание (задание - ["task"], урок - ["lesson"]
 def check_url(url):
     url = url.replace('https://', '')
     url = url.split('/')
@@ -324,6 +316,7 @@ def check_url(url):
         return "Проверьте ссылку"
 
 
+# Вычленяет код между двумя задаными символами
 def extract_between(input_string, start_symbol, end_symbol):
     substrings = set()
     start_index = 0
@@ -339,6 +332,7 @@ def extract_between(input_string, start_symbol, end_symbol):
     return substrings
 
 
+# Разбтвает код на линии (не работает с кодами в которых есть сиволы ASCII с номером больше 128)
 def lines(code):
     ans = []
     code = code.replace(' ** ', '**').replace(' **', '**').replace('** ', '**').replace('**', ' ** ')
@@ -365,10 +359,12 @@ def lines(code):
     return ans
 
 
+# Удаляет коментарии
 def remove_comments(src):
     return re.sub('#.*', '', src)
 
 
+# Считает количество токенов в строке (для gpt-2 и gpt-3)
 def total_tokens(s):
     encoding = tiktoken.get_encoding("gpt2")
     input_ids = encoding.encode(s)
@@ -376,6 +372,7 @@ def total_tokens(s):
     return len(input_ids)
 
 
+# Генерация кода
 def answer(s):
     response = openai.Completion.create(
         model="text-davinci-003",
@@ -383,12 +380,13 @@ def answer(s):
         temperature=0.5,
         max_tokens=4097 - total_tokens(s),
         top_p=1.0,
-        frequency_penalty=0.2,
+        frequency_penalty=0.23,
         presence_penalty=0.0,
     )
     return response["choices"][0]["text"]
 
 
+# Собирает ссылки на задания с ссылки на урок
 def lesson_parser(html):
     soup = BeautifulSoup(html, 'html.parser')
     hrefs = [a['href'] for a in soup.find_all(class_='student-task-list__task')]
@@ -396,6 +394,7 @@ def lesson_parser(html):
     return hrefs
 
 
+# Приводит код к pep8
 def pep8(code):
     url = "https://extendsclass.com/python-formatter.html"
     chrome_options = webdriver.ChromeOptions()
@@ -406,7 +405,8 @@ def pep8(code):
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver",
+                              options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = lines(code)
@@ -426,22 +426,16 @@ def pep8(code):
     return code_pep8
 
 
-async def sanya_prover(num, __id):
-    await bot.send_message(__id,
-                           f'Твой номер? {num}',
-                           reply_markup=num_markup)
-
-
+# Реализация очереди
 async def make_task(id):
-    _username = users_data[id].login
-    _passwd = users_data[id].passwd
     _data_links = users_data[id].links
     while (len(_data_links) != 0):
-        solve(_username, _passwd, _data_links[0], id)
+        solve(_data_links[0], id)
         _data_links.pop(0)
 
 
-def solve(username, passwd, lesson_url, _id):
+# Функция нарешивания задач
+def solve(lesson_url, _id):
     lesson_type = 'func/class'
 
     driver = users_data[_id].driver
@@ -450,7 +444,7 @@ def solve(username, passwd, lesson_url, _id):
         driver.get(lesson_url)
     except:
         # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        exit(0)
+        return
     time.sleep(0.2)
 
     try:
@@ -459,7 +453,7 @@ def solve(username, passwd, lesson_url, _id):
         # print(data)
     except:
         # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        exit(0)
+        return
 
     if check_url(lesson_url) == ['task']:
         data = [lesson_url]
@@ -471,13 +465,13 @@ def solve(username, passwd, lesson_url, _id):
             driver.get(task_url)
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            exit(0)
+            return
         time.sleep(2)
         try:
             task_html = driver.page_source
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            exit(0)
+            return
         try:
             if 'Зачтено' in driver.page_source or (
                     'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
@@ -493,7 +487,7 @@ def solve(username, passwd, lesson_url, _id):
             # print(driver.current_url)
             # print(task_html)
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            exit(0)
+            return
 
         q = []
         samples = []
@@ -505,7 +499,7 @@ def solve(username, passwd, lesson_url, _id):
             problem_statement_layer1 = problem_statement.findChildren(recursive=False)
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            exit(0)
+            return
 
         try:
             for element in problem_statement_layer1:
@@ -522,7 +516,7 @@ def solve(username, passwd, lesson_url, _id):
                     q.append(str.strip(element.text))
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            exit(0)
+            return
 
         q = ''.join(q)
         for i in range(len(samples)):
@@ -538,7 +532,7 @@ def solve(username, passwd, lesson_url, _id):
                                                                "Button2.Button2_type_link.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            exit(0)
+            return
 
         for zzz in range(5):
 
@@ -564,7 +558,7 @@ def solve(username, passwd, lesson_url, _id):
                 ans = str(answer(prompt).strip())
             except:
                 # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-                exit(0)
+                return
             if ans[0] == '.' or ans[0] == ':':
                 ans = ans[1::].strip()
             # print(ans)
@@ -576,7 +570,7 @@ def solve(username, passwd, lesson_url, _id):
                 ans = pep8(ans)
             except:
                 # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-                exit(0)
+                return
             # print(ans)
             # print('-' * 50)
             ans = lines(ans)
@@ -589,14 +583,14 @@ def solve(username, passwd, lesson_url, _id):
                 time.sleep(0.2)
             except:
                 # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-                exit(0)
+                return
 
             try:
                 for e in ans:
                     ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
             except:
                 # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-                exit(0)
+                return
 
             time.sleep(0.5)
 
@@ -605,7 +599,7 @@ def solve(username, passwd, lesson_url, _id):
                                                                "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
             except:
                 # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-                exit(0)
+                return
 
             try:
                 shit = 0
@@ -622,7 +616,8 @@ def solve(username, passwd, lesson_url, _id):
                     break
             except:
                 # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-                exit(0)
+                return
+
 
 if __name__ == "__main__":
     executor.start_polling(dp, on_shutdown=shutdown)
