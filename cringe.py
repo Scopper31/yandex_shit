@@ -290,8 +290,8 @@ def check_url(url):
                                 if len(url) > 7:
                                     if 'tasks' == url[7]:
                                         return ['task']
-                                    else:
-                                        return ['lesson']
+                                else:
+                                    return ['lesson']
     return "Проверьте ссылку"
 
 
