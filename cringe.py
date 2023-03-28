@@ -57,7 +57,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', send_time=datetime.datetime(2035, 1, 1, 1, 1, 1)):
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', send_time=datetime.datetime(2035, 1, 1, 1, 1)):
         self.login = login
         self.links = []
         self.driver = driver
@@ -274,7 +274,7 @@ async def login_qr(_id):
     # chrome_options.add_experimental_option("detach", True)
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver_login = webdriver.Chrome(options=chrome_options)
+    driver_login = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
@@ -394,7 +394,7 @@ def pep8(code):
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = lines(code)
@@ -426,6 +426,7 @@ async def make_task(_id):
 def solve(lesson_url, _id):
     lesson_type = 'func/class'
     fla = 0
+
     driver = users_data[_id].driver
 
     try:
@@ -581,7 +582,6 @@ def solve(lesson_url, _id):
                 return
 
             time.sleep(0.5)
-
             try:
                 if fla == 0:
                     time.sleep(max(0, 300 - int((datetime.datetime.now() - users_data[_id].time).total_seconds())))
