@@ -142,7 +142,7 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
         await asyncio.sleep(1)
     users_login(callback_query.from_user.id)
     sqlite_connection = sql.sql_connection()
-    if not sql.check_existence(sqlite_connection, users_data[callback_query.from_user.id].login):
+    if not sql.check_existence(sqlite_connection, users_data[callback_query.from_user.id].login.lower()):
         await bot.delete_message(callback_query.from_user.id, sending_id)
         await bot.send_message(callback_query.from_user.id, '❌')
         state = dp.current_state(user=callback_query.from_user.id)
@@ -258,7 +258,7 @@ def users_login(_id):
     k = yandex_user_data.find(""""username":""") + len(""""username":""") + 1
     yandex_user_data = yandex_user_data[k:k + 100:]
     username = yandex_user_data.split('"')[0]
-    users_data[_id].login = username
+    users_data[_id].login = username.lower()
 
 
 # poshel nahuy
