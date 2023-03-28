@@ -225,7 +225,7 @@ async def zero_state_msg(msg: types.Message):
 @dp.message_handler(state=TestStates.TEST_STATE_1[0])
 async def third_test_state_case_met(message: types.Message):
     if type(check_url(message.text)) == list:
-        if check_url(message.text) == ['task']:
+        if check_url(message.text) == ['lesson']:
             links_array = lesson_parser(message.chat.id, message.text)
         else:
             links_array = [message.text]
@@ -588,7 +588,7 @@ def solve(lesson_url, _id):
         time.sleep(0.5)
         try:
             if fla == 0:
-                time.sleep(max(0, 300 - int((datetime.datetime.now() - users_data[_id].time).total_seconds())))
+                time.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].time).total_seconds())))
                 fla = 1
             users_data[_id].time = datetime.datetime.now()
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
