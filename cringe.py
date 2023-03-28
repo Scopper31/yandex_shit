@@ -19,6 +19,8 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from utils import TestStates
 import datetime
+import asyncio
+
 
 openai.api_key = key
 
@@ -136,7 +138,7 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
             await state.reset_state()
             await bot.send_message(callback_query.from_user.id, 'Давай по новой')
             return
-        time.sleep(1)
+        await asyncio.sleep(1)
     users_login(callback_query.from_user.id)
     sqlite_connection = sql.sql_connection()
     if not sql.check_existence(sqlite_connection, users_data[callback_query.from_user.id].login):
@@ -274,7 +276,7 @@ async def login_qr(_id):
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
-    time.sleep(1)
+    await asyncio.sleep(1)
     qr = driver_login.find_element(By.CLASS_NAME, "MagicField-qr").screenshot_as_png
     users_data[_id].driver = driver_login
     qr = BytesIO(qr)
@@ -580,7 +582,7 @@ def solve(lesson_url, _id):
             time.sleep(0.5)
             fla = 0
             try:
-                if fla == 0:  
+                if fla == 0:
                     time.sleep(max(0, 300 - (datetime.datetime.now() - users_data[_id].time).total_seconds))
                     fla = 1
                 users_data[_id].time = datetime.datetime.now()
