@@ -581,7 +581,7 @@ def solve(lesson_url, _id):
             fla = 0
             try:
                 if fla == 0:  
-                    time.sleep(max(0, 210 - (datetime.datetime.now() - users_data[_id].time).total_seconds))
+                    time.sleep(max(0, 300 - (datetime.datetime.now() - users_data[_id].time).total_seconds))
                     fla = 1
                 users_data[_id].time = datetime.datetime.now()
                 ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
