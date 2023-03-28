@@ -218,10 +218,14 @@ async def zero_state_msg(msg: types.Message):
 @dp.message_handler(state=TestStates.TEST_STATE_1[0])
 async def third_test_state_case_met(message: types.Message):
     if type(check_url(message.text)) == list:
+        if check_url(message.text) == ['task']:
+            links_array = lesson_parser(message.text)
+        else:
+            links_array = [message.text]
         await message.reply('Погнали!', reply=False)
 
         if len(users_data[message.from_user.id].links) == 0:
-            users_data[message.from_user.id].links.append(message.text)
+            users_data[message.from_user.id].links.extend(links_array)
             await make_task(message.from_user.id)
         else:
             users_data[message.from_user.id].links.append(message.text)
