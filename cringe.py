@@ -128,7 +128,9 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
     await callback_query.message.delete()
     users_data[callback_query.from_user.id] = User()
     state = dp.current_state(user=callback_query.from_user.id)
-    await bot.send_message(callback_query.from_user.id, 'Подтверждай вход через QR код')
+    sending = await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
+    sending_id = sending.message_id
+    await bot.send_message(callback_query.from_user.id, f'{sending_id}')
     await login_qr(callback_query.from_user.id)
     await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
     driver = users_data[callback_query.from_user.id].driver
