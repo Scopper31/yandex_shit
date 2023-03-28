@@ -431,8 +431,8 @@ def solve(lesson_url, _id):
     fla = 0
 
     driver = users_data[_id].driver
-    driver.close()
-    driver.get("https://lyceum.yandex.ru/courses/768/groups/6113/lessons/3621/tasks/26592")
+    # driver.close()
+    # driver.get("https://lyceum.yandex.ru/courses/768/groups/6113/lessons/3621/tasks/26592")
     try:
         # driver.get(lesson_url)
             pass
