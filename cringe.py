@@ -551,78 +551,78 @@ def solve(lesson_url, _id):
             prompt += '\n' + funcclass_template[0] + inp + funcclass_template[1] + out + '\n'
         prompt += "\nYou need to write only the code, not the program calling it"
 
+    for zzz in range(5):
 
-for zzz in range(5):
+        time.sleep(2)
+        try:
+            ans = str(answer(prompt).strip())
+        except:
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            return
+        if ans[0] == '.' or ans[0] == ':':
+            ans = ans[1::].strip()
+        # print(ans)
+        # print('-' * 50)
+        ans = remove_comments(ans)
+        # print(ans)
+        # print('-' * 50)
+        try:
+            ans = pep8(ans)
+        except:
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            return
+        # print(ans)
+        # print('-' * 50)
+        ans = lines(ans)
 
-    time.sleep(2)
-    try:
-        ans = str(answer(prompt).strip())
-    except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        return
-    if ans[0] == '.' or ans[0] == ':':
-        ans = ans[1::].strip()
-    # print(ans)
-    # print('-' * 50)
-    ans = remove_comments(ans)
-    # print(ans)
-    # print('-' * 50)
-    try:
-        ans = pep8(ans)
-    except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        return
-    # print(ans)
-    # print('-' * 50)
-    ans = lines(ans)
+        try:
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
+            ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
+            time.sleep(0.2)
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
+            time.sleep(0.2)
+        except:
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            return
 
-    try:
-        ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
-        ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
-        time.sleep(0.2)
-        ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
-        time.sleep(0.2)
-    except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        return
+        try:
+            for e in ans:
+                ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
+        except:
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            return
 
-    try:
-        for e in ans:
-            ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
-    except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        return
+        time.sleep(0.5)
+        try:
+            if fla == 0:
+                time.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
+                # print('fhfhfhfhfhfh')
+                fla = 1
+            users_data[_id].send_time = datetime.datetime.now()
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
+                                                           "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+        except:
+            print(1)
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            return
 
-    time.sleep(0.5)
-    try:
-        if fla == 0:
-            time.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
-            # print('fhfhfhfhfhfh')
-            fla = 1
-        users_data[_id].send_time = datetime.datetime.now()
-        ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                       "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
-    except:
-        print(1)
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        return
-
-    try:
-        shit = 0
-        for t in range(100):
-            driver.refresh()
-            time.sleep(3)
-            if 'Доработать' in driver.page_source and t > 15:
+        try:
+            shit = 0
+            for t in range(100):
+                driver.refresh()
+                time.sleep(3)
+                if 'Доработать' in driver.page_source and t > 15:
+                    break
+                if 'Зачтено' in driver.page_source or (
+                        'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
+                    shit = 1
+                    break
+            if shit == 1:
                 break
-            if 'Зачтено' in driver.page_source or (
-                    'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
-                shit = 1
-                break
-        if shit == 1:
-            break
-    except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        return
+        except:
+            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+            return
+
 
 if __name__ == "__main__":
     executor.start_polling(dp, on_shutdown=shutdown)
