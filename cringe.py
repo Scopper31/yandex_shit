@@ -1,9 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import asyncio
+import datetime
 import logging
 import re
 import time
 from io import BytesIO
+
 import openai
 import sql
 import tiktoken
@@ -16,12 +19,9 @@ from bs4 import BeautifulSoup
 from content import key
 from selenium import webdriver
 from selenium.webdriver import ActionChains
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 from utils import TestStates
-import datetime
-import asyncio
-
 
 openai.api_key = key
 
@@ -58,7 +58,8 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', send_time=datetime.datetime(2035, 1, 1, 1, 1)):
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='',
+                 send_time=datetime.datetime(2035, 1, 1, 1, 1)):
         self.login = login
         self.links = []
         self.driver = driver
@@ -279,7 +280,8 @@ async def login_qr(_id):
     # chrome_options.add_experimental_option("detach", True)
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver_login = webdriver.Chrome(service=Service("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver"), options=chrome_options)
+    driver_login = webdriver.Chrome(service=Service("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver"),
+                                    options=chrome_options)
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
@@ -402,7 +404,8 @@ def pep8(code):
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(service=Service("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver"), options=chrome_options)
+    driver = webdriver.Chrome(service=Service("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver"),
+                              options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = lines(code)
@@ -531,95 +534,95 @@ def solve(lesson_url, _id):
         return
 
     prompt = template + q
-        if lesson_type == 'program':
-            f = 0
-            for tests in samples:
-                inp = tests[0].strip()
-                out = tests[1].strip()
-                if f == 0:
-                    prompt += sample_template[2] + inp + sample_template[1] + out
-                    f = 1
-                else:
-                    prompt += sample_template[0] + inp + sample_template[1] + out
-        elif lesson_type == 'func/class':
-            for tests in samples:
-                inp = tests[0].strip()
-                out = tests[1].strip()
-                prompt += '\n' + funcclass_template[0] + inp + funcclass_template[1] + out + '\n'
-            prompt += "\nYou need to write only the code, not the program calling it"
-      
-    for zzz in range(5):
+    if lesson_type == 'program':
+        f = 0
+        for tests in samples:
+            inp = tests[0].strip()
+            out = tests[1].strip()
+            if f == 0:
+                prompt += sample_template[2] + inp + sample_template[1] + out
+                f = 1
+            else:
+                prompt += sample_template[0] + inp + sample_template[1] + out
+    elif lesson_type == 'func/class':
+        for tests in samples:
+            inp = tests[0].strip()
+            out = tests[1].strip()
+            prompt += '\n' + funcclass_template[0] + inp + funcclass_template[1] + out + '\n'
+        prompt += "\nYou need to write only the code, not the program calling it"
 
-        time.sleep(2)
-        try:
-            ans = str(answer(prompt).strip())
-        except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            return
-        if ans[0] == '.' or ans[0] == ':':
-            ans = ans[1::].strip()
-        # print(ans)
-        # print('-' * 50)
-        ans = remove_comments(ans)
-        # print(ans)
-        # print('-' * 50)
-        try:
-            ans = pep8(ans)
-        except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            return
-        # print(ans)
-        # print('-' * 50)
-        ans = lines(ans)
 
-        try:
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
-            ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
-            time.sleep(0.2)
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
-            time.sleep(0.2)
-        except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            return
+for zzz in range(5):
 
-        try:
-            for e in ans:
-                ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
-        except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            return
+    time.sleep(2)
+    try:
+        ans = str(answer(prompt).strip())
+    except:
+        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        return
+    if ans[0] == '.' or ans[0] == ':':
+        ans = ans[1::].strip()
+    # print(ans)
+    # print('-' * 50)
+    ans = remove_comments(ans)
+    # print(ans)
+    # print('-' * 50)
+    try:
+        ans = pep8(ans)
+    except:
+        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        return
+    # print(ans)
+    # print('-' * 50)
+    ans = lines(ans)
 
-        time.sleep(0.5)
-        try:
-            if fla == 0:
-                time.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
-                # print('fhfhfhfhfhfh')
-                fla = 1
-            users_data[_id].send_time = datetime.datetime.now()
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                           "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
-        except:
-            print(1)
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            return
+    try:
+        ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
+        ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
+        time.sleep(0.2)
+        ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
+        time.sleep(0.2)
+    except:
+        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        return
 
-        try:
-            shit = 0
-            for t in range(100):
-                driver.refresh()
-                time.sleep(3)
-                if 'Доработать' in driver.page_source and t > 15:
-                    break
-                if 'Зачтено' in driver.page_source or (
-                        'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
-                    shit = 1
-                    break
-            if shit == 1:
+    try:
+        for e in ans:
+            ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
+    except:
+        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        return
+
+    time.sleep(0.5)
+    try:
+        if fla == 0:
+            time.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
+            # print('fhfhfhfhfhfh')
+            fla = 1
+        users_data[_id].send_time = datetime.datetime.now()
+        ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
+                                                       "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+    except:
+        print(1)
+        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        return
+
+    try:
+        shit = 0
+        for t in range(100):
+            driver.refresh()
+            time.sleep(3)
+            if 'Доработать' in driver.page_source and t > 15:
                 break
-        except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-            return
-
+            if 'Зачтено' in driver.page_source or (
+                    'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
+                shit = 1
+                break
+        if shit == 1:
+            break
+    except:
+        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
+        return
 
 if __name__ == "__main__":
     executor.start_polling(dp, on_shutdown=shutdown)
