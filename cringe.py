@@ -530,10 +530,7 @@ def solve(lesson_url, _id):
         # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
 
-    for zzz in range(5):
-
-        time.sleep(2)
-        prompt = template + q
+    prompt = template + q
         if lesson_type == 'program':
             f = 0
             for tests in samples:
@@ -550,6 +547,10 @@ def solve(lesson_url, _id):
                 out = tests[1].strip()
                 prompt += '\n' + funcclass_template[0] + inp + funcclass_template[1] + out + '\n'
             prompt += "\nYou need to write only the code, not the program calling it"
+      
+    for zzz in range(5):
+
+        time.sleep(2)
         try:
             ans = str(answer(prompt).strip())
         except:
@@ -606,7 +607,7 @@ def solve(lesson_url, _id):
             shit = 0
             for t in range(100):
                 driver.refresh()
-                time.sleep(5)
+                time.sleep(3)
                 if 'Доработать' in driver.page_source and t > 15:
                     break
                 if 'Зачтено' in driver.page_source or (
