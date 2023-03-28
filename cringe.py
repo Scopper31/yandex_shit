@@ -227,9 +227,13 @@ async def third_test_state_case_met(message: types.Message):
     if type(check_url(message.text)) == list:
         if check_url(message.text) == ['lesson']:
             links_array = lesson_parser(message.chat.id, message.text)
+            print(1)
         else:
             links_array = [message.text]
+            print(2)
         await message.reply('Погнали!', reply=False)
+        print(message.text)
+        print(links_array)
 
         if len(users_data[message.from_user.id].links) == 0:
             users_data[message.from_user.id].links.extend(links_array)
@@ -411,7 +415,7 @@ def pep8(code):
     time.sleep(2)
     convert_button = driver.find_element(By.ID, "format-code")
     ActionChains(driver).click(convert_button).perform()
-    time.sleep(3)
+    time.sleep(5)
     result = list(BeautifulSoup(driver.page_source, 'html.parser').find_all(class_='CodeMirror-line'))
     code_pep8 = '\n'.join([line.text for line in result])
     return code_pep8
@@ -421,28 +425,25 @@ def pep8(code):
 async def make_task(_id):
     _data_links = users_data[_id].links
     while (len(_data_links) != 0):
+        # print(_data_links)
         solve(_data_links[0], _id)
         _data_links.pop(0)
 
 
 # Функция нарешивания задач
 def solve(lesson_url, _id):
+    # print(lesson_url)
     lesson_type = 'program'
     fla = 0
 
     driver = users_data[_id].driver
-    # driver.close()
-    # driver.get("https://lyceum.yandex.ru/courses/768/groups/6113/lessons/3621/tasks/26592")
-    try:
-        # driver.get(lesson_url)
-            pass
-    except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
-        return
     time.sleep(0.2)
 
     try:
-        texts = driver.find_elements(By.TAG_NAME, "h2")
+
+        html = driver.page_source
+        soup = BeautifulSoup(html, 'html.parser')
+        texts = soup.find_all('h2')
         jjj = 0
         for e in texts:
             if 'Формат ввода' in e:
@@ -450,6 +451,7 @@ def solve(lesson_url, _id):
         if jjj == 0:
             lesson_type = 'func/class'
     except:
+        # print(1)
         return
 
     try:
@@ -588,12 +590,14 @@ def solve(lesson_url, _id):
         time.sleep(0.5)
         try:
             if fla == 0:
-                time.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].time).total_seconds())))
+                time.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
+                # print('fhfhfhfhfhfh')
                 fla = 1
-            users_data[_id].time = datetime.datetime.now()
+            users_data[_id].send_time = datetime.datetime.now()
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
                                                            "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
         except:
+            print(1)
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
 
@@ -601,8 +605,8 @@ def solve(lesson_url, _id):
             shit = 0
             for t in range(100):
                 driver.refresh()
-                time.sleep(3)
-                if 'Доработать' in driver.page_source and t > 10:
+                time.sleep(5)
+                if 'Доработать' in driver.page_source and t > 15:
                     break
                 if 'Зачтено' in driver.page_source or (
                         'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
