@@ -274,7 +274,7 @@ async def login_qr(_id):
     # chrome_options.add_experimental_option("detach", True)
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver_login = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
+    driver_login = webdriver.Chrome(options=chrome_options)
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
@@ -394,7 +394,7 @@ def pep8(code):
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = lines(code)
@@ -450,7 +450,7 @@ def solve(lesson_url, _id):
     try:
         if 'не зарегестрированны' in driver.page_source.lower():
             driver.refresh()
-        driver.get(task_url)
+        driver.get(lesson_url)
     except:
         # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
@@ -463,7 +463,7 @@ def solve(lesson_url, _id):
     try:
         if 'Зачтено' in driver.page_source or (
                 'Вердикт' in driver.page_source and not 'Доработать' in driver.page_source):
-            continue
+            return
 
         if 'problem-statement' not in task_html:
             ActionChains(driver).click(
