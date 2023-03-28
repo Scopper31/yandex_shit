@@ -18,6 +18,7 @@ from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from utils import TestStates
+import datetime
 
 openai.api_key = key
 
@@ -54,11 +55,12 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code=''):
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', send_time=datetime.datetime.now()):
         self.login = login
         self.links = []
         self.driver = driver
         self.qr_code = qr_code
+        self.send_time = send_time
         self.wanna_commit_suicide = wanna_commit_suicide
 
 
