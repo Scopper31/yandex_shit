@@ -425,6 +425,7 @@ async def make_task(_id):
 # Функция нарешивания задач
 def solve(lesson_url, _id):
     lesson_type = 'func/class'
+    fla = 0
 
     driver = users_data[_id].driver
 
@@ -581,7 +582,6 @@ def solve(lesson_url, _id):
                 return
 
             time.sleep(0.5)
-            fla = 0
             try:
                 if fla == 0:
                     time.sleep(max(0, 300 - int((datetime.datetime.now() - users_data[_id].time).total_seconds())))
