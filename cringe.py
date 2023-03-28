@@ -128,11 +128,10 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
     await callback_query.message.delete()
     users_data[callback_query.from_user.id] = User()
     state = dp.current_state(user=callback_query.from_user.id)
+    await bot.send_message(callback_query.from_user.id, 'Подтверждай вход через QR код')
+    await login_qr(callback_query.from_user.id)
     sending = await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
     sending_id = sending.message_id
-    await bot.send_message(callback_query.from_user.id, f'{sending_id}')
-    await login_qr(callback_query.from_user.id)
-    await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
     driver = users_data[callback_query.from_user.id].driver
     qr_url = driver.current_url
     while driver.current_url == qr_url:
@@ -144,11 +143,13 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
     users_login(callback_query.from_user.id)
     sqlite_connection = sql.sql_connection()
     if not sql.check_existence(sqlite_connection, users_data[callback_query.from_user.id].login):
+        await bot.delete_message(callback_query.from_user.id, sending_id)
         await bot.send_message(callback_query.from_user.id, '❌')
         state = dp.current_state(user=callback_query.from_user.id)
         await state.reset_state()
         await bot.send_message(callback_query.from_user.id, 'У вас нет подписки((( сори')
     else:
+        await bot.delete_message(callback_query.from_user.id, sending_id)
         await bot.send_message(callback_query.from_user.id, '🆗')
         await state.set_state(TestStates.all()[1])
         await bot.send_message(callback_query.from_user.id,
@@ -273,8 +274,7 @@ async def login_qr(_id):
     # chrome_options.add_experimental_option("detach", True)
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver_login = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver",
-                                    options=chrome_options)
+    driver_login = webdriver.Chrome(options=chrome_options)
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
@@ -394,8 +394,7 @@ def pep8(code):
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver",
-                              options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = lines(code)
@@ -585,7 +584,7 @@ def solve(lesson_url, _id):
             fla = 0
             try:
                 if fla == 0:
-                    time.sleep(max(0, 300 - (datetime.datetime.now() - users_data[_id].time).total_seconds))
+                    time.sleep(max(0, 300 - int((datetime.datetime.now() - users_data[_id].time).total_seconds())))
                     fla = 1
                 users_data[_id].time = datetime.datetime.now()
                 ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
