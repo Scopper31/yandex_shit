@@ -226,7 +226,7 @@ async def zero_state_msg(msg: types.Message):
 async def third_test_state_case_met(message: types.Message):
     if type(check_url(message.text)) == list:
         if check_url(message.text) == ['task']:
-            links_array = lesson_parser(message.text)
+            links_array = lesson_parser(message.chat.id, message.text)
         else:
             links_array = [message.text]
         await message.reply('Погнали!', reply=False)
@@ -266,15 +266,15 @@ def users_login(_id):
 # Создание сесии, добавляет qr и driver(сессию) в users_data
 async def login_qr(_id):
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--headless")
+    # chrome_options.add_argument("--headless")
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--incognito")
-    chrome_options.add_argument("--disable-gpu")
+    # chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-extensions")
     # chrome_options.add_experimental_option("detach", True)
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver_login = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
+    driver_login = webdriver.Chrome(options=chrome_options)
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
@@ -376,7 +376,10 @@ def answer(s):
 
 
 # Собирает ссылки на задания с ссылки на урок
-def lesson_parser(html):
+def lesson_parser(_id, url):
+    driver = users_data[_id].driver
+    driver.get(url)
+    html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
     hrefs = [a['href'] for a in soup.find_all(class_='student-task-list__task')]
     hrefs = ['https://lyceum.yandex.ru' + i for i in hrefs]
@@ -394,7 +397,7 @@ def pep8(code):
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver", options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = lines(code)
@@ -428,9 +431,11 @@ def solve(lesson_url, _id):
     fla = 0
 
     driver = users_data[_id].driver
-
+    driver.close()
+    driver.get("https://lyceum.yandex.ru/courses/768/groups/6113/lessons/3621/tasks/26592")
     try:
-        driver.get(lesson_url)
+        # driver.get(lesson_url)
+            pass
     except:
         # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
