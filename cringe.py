@@ -198,7 +198,7 @@ async def successful_payment(message: types.Message):
     # print("SUCCESSFUL PAYMENT:")
     payment_info = message.successful_payment.to_python()
     sqlite_connection = sql.sql_connection()
-    sql.add_subscriber(sqlite_connection, payment_info['order_info']['email'])
+    sql.add_subscriber(sqlite_connection, payment_info['order_info']['email'].split('@')[0])
     sqlite_connection.close()
     for k, v in payment_info.items():
         pass
