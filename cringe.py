@@ -142,7 +142,7 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
             await bot.send_message(callback_query.from_user.id, 'Давай по новой')
             return
         await asyncio.sleep(1)
-    users_login(callback_query.from_user.id)
+    await users_login(callback_query.from_user.id)
     sqlite_connection = sql.sql_connection()
     if not sql.check_existence(sqlite_connection, users_data[callback_query.from_user.id].login.lower()):
         await bot.delete_message(callback_query.from_user.id, sending_id)
@@ -226,9 +226,10 @@ async def zero_state_msg(msg: types.Message):
 
 @dp.message_handler(state=TestStates.TEST_STATE_1[0])
 async def third_test_state_case_met(message: types.Message):
-    if type(check_url(message.text)) == list:
-        if check_url(message.text) == ['lesson']:
-            links_array = lesson_parser(message.chat.id, message.text)
+    check = await check_url(message.text)
+    if type(check) == list:
+        if check == ['lesson']:
+            links_array = await lesson_parser(message.chat.id, message.text)
             print(1)
         else:
             links_array = [message.text]
@@ -258,7 +259,7 @@ async def shutdown(dispatcher: Dispatcher):
 # run long-polling
 
 # Проверка что чел у нас в базе
-def users_login(_id):
+async def users_login(_id):
     driver = users_data[_id].driver
     yandex_user_data = driver.page_source
     k = yandex_user_data.find(""""username":""") + len(""""username":""") + 1
@@ -293,7 +294,7 @@ async def login_qr(_id):
 
 
 # Проверка что ссылка на яндекс, возвращает урок или задание (задание - ["task"], урок - ["lesson"]
-def check_url(url):
+async def check_url(url):
     url = url.replace('https://', '')
     url = url.split('/')
     domain = url[0]
@@ -313,7 +314,7 @@ def check_url(url):
 
 
 # Вычленяет код между двумя задаными символами
-def extract_between(input_string, start_symbol, end_symbol):
+async def extract_between(input_string, start_symbol, end_symbol):
     substrings = set()
     start_index = 0
     while True:
@@ -329,11 +330,11 @@ def extract_between(input_string, start_symbol, end_symbol):
 
 
 # Разбтвает код на линии (не работает с кодами в которых есть сиволы ASCII с номером больше 128)
-def lines(code):
+async def lines(code):
     ans = []
     code = code.replace(' ** ', '**').replace(' **', '**').replace('** ', '**').replace('**', ' ** ')
-    s1 = extract_between(code, "'", "'")
-    s2 = extract_between(code, '"', '"')
+    s1 = await extract_between(code, "'", "'")
+    s2 = await extract_between(code, '"', '"')
     decode = dict()
     encode = s1 | s2
     cnt = 0
@@ -356,12 +357,12 @@ def lines(code):
 
 
 # Удаляет коментарии
-def remove_comments(src):
+async def remove_comments(src):
     return re.sub('#.*', '', src)
 
 
 # Считает количество токенов в строке (для gpt-2 и gpt-3)
-def total_tokens(s):
+async def total_tokens(s):
     encoding = tiktoken.get_encoding("gpt2")
     input_ids = encoding.encode(s)
     # print(len(input_ids))
@@ -369,12 +370,12 @@ def total_tokens(s):
 
 
 # Генерация кода
-def answer(s):
+async def answer(s):
     response = openai.Completion.create(
         model="text-davinci-003",
         prompt=s,
         temperature=0.5,
-        max_tokens=4097 - total_tokens(s),
+        max_tokens=4097 - await total_tokens(s),
         top_p=1.0,
         frequency_penalty=0.23,
         presence_penalty=0.0,
@@ -383,7 +384,7 @@ def answer(s):
 
 
 # Собирает ссылки на задания с ссылки на урок
-def lesson_parser(_id, url):
+async def lesson_parser(_id, url):
     driver = users_data[_id].driver
     driver.get(url)
     html = driver.page_source
@@ -394,7 +395,7 @@ def lesson_parser(_id, url):
 
 
 # Приводит код к pep8
-def pep8(code):
+async def pep8(code):
     url = "https://extendsclass.com/python-formatter.html"
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
@@ -408,7 +409,7 @@ def pep8(code):
                               options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
-    code = lines(code)
+    code = await lines(code)
     ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
     ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
     time.sleep(0.2)
@@ -428,14 +429,14 @@ def pep8(code):
 # Реализация очереди
 async def make_task(_id):
     _data_links = users_data[_id].links
-    while (len(_data_links) != 0):
+    while len(_data_links) != 0:
         # print(_data_links)
-        solve(_data_links[0], _id)
+        await solve(_data_links[0], _id)
         _data_links.pop(0)
 
 
 # Функция нарешивания задач
-def solve(lesson_url, _id):
+async def solve(lesson_url, _id):
     # print(lesson_url)
     lesson_type = 'program'
     fla = 0
@@ -555,7 +556,9 @@ def solve(lesson_url, _id):
 
         time.sleep(2)
         try:
-            ans = str(answer(prompt).strip())
+
+            ans = str(await answer(prompt))
+            ans = ans.strip()
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
@@ -563,17 +566,17 @@ def solve(lesson_url, _id):
             ans = ans[1::].strip()
         # print(ans)
         # print('-' * 50)
-        ans = remove_comments(ans)
+        ans = await remove_comments(ans)
         # print(ans)
         # print('-' * 50)
         try:
-            ans = pep8(ans)
+            ans = await pep8(ans)
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
         # print(ans)
         # print('-' * 50)
-        ans = lines(ans)
+        ans = await lines(ans)
 
         try:
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
