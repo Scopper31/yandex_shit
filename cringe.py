@@ -4,17 +4,19 @@ import asyncio
 import datetime
 import logging
 import re
+import threading
 import time
 from io import BytesIO
 
 import openai
 import sql
 import tiktoken
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Bot, Dispatcher, executor, types, utils
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.types.message import ContentType
+
 from bs4 import BeautifulSoup
 from content import key
 from selenium import webdriver
@@ -22,10 +24,11 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from utils import TestStates
+import asyncio
 
 openai.api_key = key
 
-template = 'Python, dont write any comments, provide answer in code block, obey pep8\nThe problem: '
+template = 'Python, dont write any comments, dont write anything except code, provide answer in code block, obey pep8\nThe problem: '
 sample_template = ["\nFor this example:\n", "\nIt outputs this:\n", "\nFor example if program gets this input:\n"]
 funcclass_template = ["\nAn example of program that might use your code:\n",
                       "\nOutput it needs to produce:\n"]
@@ -240,7 +243,8 @@ async def third_test_state_case_met(message: types.Message):
 
         if len(users_data[message.from_user.id].links) == 0:
             users_data[message.from_user.id].links.extend(links_array)
-            await make_task(message.from_user.id)
+            thread = threading.Thread(target=asyncio.run, args=(make_task(message.from_user.id),))
+            thread.start()
         else:
             users_data[message.from_user.id].links.append(message.text)
 
@@ -281,8 +285,7 @@ async def login_qr(_id):
     # chrome_options.add_experimental_option("detach", True)
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver_login = webdriver.Chrome(service=Service("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver"),
-                                    options=chrome_options)
+    driver_login = webdriver.Chrome(options=chrome_options)
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
@@ -405,8 +408,7 @@ async def pep8(code):
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(service=Service("/lhope/.wdm/drivers/chromedriver/linux64/111.0.5563/chromedriver"),
-                              options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = await lines(code)
