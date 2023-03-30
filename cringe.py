@@ -412,15 +412,15 @@ async def pep8(code):
     code = await lines(code)
     ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
     ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
-    time.sleep(0.2)
+    await asyncio.sleep(0.2)
     ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
-    time.sleep(0.2)
+    await asyncio.sleep(0.2)
     for e in code:
         ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
-    time.sleep(2)
+    await asyncio.sleep(2)
     convert_button = driver.find_element(By.ID, "format-code")
     ActionChains(driver).click(convert_button).perform()
-    time.sleep(5)
+    await asyncio.sleep(5)
     result = list(BeautifulSoup(driver.page_source, 'html.parser').find_all(class_='CodeMirror-line'))
     code_pep8 = '\n'.join([line.text for line in result])
     return code_pep8
@@ -442,7 +442,7 @@ async def solve(lesson_url, _id):
     fla = 0
 
     driver = users_data[_id].driver
-    time.sleep(0.2)
+    await asyncio.sleep(0.2)
 
     try:
 
@@ -466,7 +466,7 @@ async def solve(lesson_url, _id):
     except:
         # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
-    time.sleep(2)
+    await asyncio.sleep(2)
     try:
         task_html = driver.page_source
     except:
@@ -481,7 +481,7 @@ async def solve(lesson_url, _id):
             ActionChains(driver).click(
                 driver.find_element(By.CLASS_NAME, "y4ef2d--task-description-opener").find_element(By.CLASS_NAME,
                                                                                                    "nav-tab.nav-tab_view_button")).perform()
-            time.sleep(1)
+            await asyncio.sleep(1)
             task_html = driver.page_source
     except:
         # print(driver.current_url)
@@ -524,7 +524,7 @@ async def solve(lesson_url, _id):
         samples[i][1] = samples[i][1].text
     # print(samples)
 
-    time.sleep(1)
+    await asyncio.sleep(1)
 
     try:
         if 'Открыть редактор' in task_html:
@@ -554,7 +554,7 @@ async def solve(lesson_url, _id):
 
     for zzz in range(5):
 
-        time.sleep(2)
+        await asyncio.sleep(2)
         try:
 
             ans = str(await answer(prompt))
@@ -581,9 +581,9 @@ async def solve(lesson_url, _id):
         try:
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
             ActionChains(driver).key_down('\ue009').send_keys("a").key_up('\ue009').send_keys('\ue003').perform()
-            time.sleep(0.2)
+            await asyncio.sleep(0.2)
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
-            time.sleep(0.2)
+            await asyncio.sleep(0.2)
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
@@ -595,10 +595,10 @@ async def solve(lesson_url, _id):
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
 
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
         try:
             if fla == 0:
-                time.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
+                await asyncio.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
                 # print('fhfhfhfhfhfh')
                 fla = 1
             users_data[_id].send_time = datetime.datetime.now()
@@ -613,7 +613,7 @@ async def solve(lesson_url, _id):
             shit = 0
             for t in range(100):
                 driver.refresh()
-                time.sleep(3)
+                await asyncio.sleep(3)
                 if 'Доработать' in driver.page_source and t > 15:
                     break
                 if 'Зачтено' in driver.page_source or (
