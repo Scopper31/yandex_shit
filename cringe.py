@@ -598,7 +598,7 @@ async def solve(lesson_url, _id):
 
         try:
             shit = 0
-            for t in range(100):
+            for t in range(20):
                 driver.refresh()
                 await asyncio.sleep(3)
                 if 'Доработать' in driver.page_source and t > 15:
