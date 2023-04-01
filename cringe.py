@@ -312,7 +312,7 @@ async def extract_between(input_string, start_symbol, end_symbol):
         end_index = input_string.find(end_symbol, start_index + 1)
         if end_index == -1:
             break
-        substrings.add(input_string[start_index + 1: end_index])
+        substrings.add(start_symbol + input_string[start_index + 1: end_index] + end_symbol)
         start_index = end_index + 1
     return substrings
 
