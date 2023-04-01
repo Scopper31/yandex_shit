@@ -349,9 +349,9 @@ async def remove_comments(src):
     return re.sub('#.*', '', src)
 
 
-# Считает количество токенов в строке (для gpt-2 и gpt-3)
+# Считает количество токенов в строке (для gpt-3.5)
 async def total_tokens(s):
-    encoding = tiktoken.get_encoding("gpt2")
+    encoding = tiktoken.get_encoding("cl100k_base")
     input_ids = encoding.encode(s)
     # print(len(input_ids))
     return len(input_ids)
