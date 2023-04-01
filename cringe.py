@@ -363,17 +363,18 @@ async def total_tokens(s):
 
 
 # Генерация кода
-async def answer(s):
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=s,
+async def answer(prompt):
+    conversation = [{'role': 'user', 'content': prompt}]
+    response = openai.ChatCompletion.create(
+        model='gpt-3.5-turbo',
+        messages=conversation,
         temperature=0.5,
-        max_tokens=4097 - await total_tokens(s),
+        max_tokens=4097 - await total_tokens(prompt),
         top_p=1.0,
-        frequency_penalty=0.23,
+        frequency_penalty=0.21,
         presence_penalty=0.0,
     )
-    return response["choices"][0]["text"]
+    return response["choices"][0]["message"]["content"]
 
 
 
