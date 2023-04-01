@@ -99,28 +99,13 @@ async def process_callback_buy2(callback_query: types.CallbackQuery):
                            payload="test-invoice-payload")
 
 
-@dp.callback_query_handler(lambda c: c.data == 'yes_call', state=TestStates.all())
-async def process_callback_yes(callback_query: types.CallbackQuery):
-    state = dp.current_state(user=callback_query.from_user.id)
-    await state.set_state(TestStates.all()[5])
-    await bot.send_message(callback_query.from_user.id, 'Гони пинкод')
-
-
 @dp.message_handler(state=TestStates.TEST_STATE_5[0])
 async def first_test_state_case_met(message: types.Message):
     pin = message.text
     users_data[message.from_user.id].pin = pin
     users_data[message.from_user.id].wanna_commit_suicide = True
 
-
-@dp.callback_query_handler(lambda c: c.data == 'no_call', state=TestStates.all())
-async def process_callback_no(callback_query: types.CallbackQuery):
-    state = dp.current_state(user=callback_query.from_user.id)
-    await state.reset_state()
-    await bot.send_message(callback_query.from_user.id, 'Помянем. Иди в жопу')
-    users_data[callback_query.from_user.id].wanna_commit_suicide = False
-
-
+    
 @dp.callback_query_handler(lambda c: c.data == 'stop', state=TestStates.all())
 async def process_callback_stop(callback_query: types.CallbackQuery):
     state = dp.current_state(user=callback_query.from_user.id)
