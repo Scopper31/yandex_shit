@@ -61,7 +61,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=10,
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=1000,
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
         self.login = login
         self.links = []
@@ -147,7 +147,7 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
         await bot.send_message(callback_query.from_user.id,
                                'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
                                reply_markup=stop_markup)
-        thread_time = threading.Thread(target=asyncio.run, args=(time_end(callback_query.from_user.id, bot),))
+        thread_time = threading.Thread(target=asyncio.run, args=(time_end(callback_query.from_user.id),))
         thread_time.start()
 
 
@@ -221,14 +221,16 @@ async def driver_end(__id):
     driver.quit()
 
 
-async def time_end(_id, botik):
+async def time_end(_id):
     while users_data[_id].fck != 0:
         users_data[_id].fck -= 2
         await asyncio.sleep(2)
     await driver_end(_id)
-    await botik.send_message(_id, 'Ввод данных прерван(')
-
-#    await time_end(message.from_user.id)
+    kill_me = dp.current_state(user=_id)
+    await kill_me.reset_state()
+    za_nashih = Bot(token=BOT_TOKEN)
+    await za_nashih.send_message(_id, 'бб')
+    await za_nashih.close()
 
 
 @dp.message_handler(state=TestStates.TEST_STATE_1[0])
@@ -258,7 +260,7 @@ async def third_test_state_case_met(message: types.Message):
     else:
         await message.delete()
         await message.reply('Ссылка говно!', reply=False)
-    users_data[message.from_user.id].fck = 7
+    users_data[message.from_user.id].fck = 1000
 
 
 async def shutdown(dispatcher: Dispatcher):
