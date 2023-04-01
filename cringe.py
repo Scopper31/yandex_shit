@@ -24,7 +24,7 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from utils import TestStates
-import asyncio
+
 
 openai.api_key = key
 
