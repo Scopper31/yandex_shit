@@ -354,22 +354,22 @@ async def remove_comments(src):
     return re.sub('#.*', '', src)
 
 
-# Считает количество токенов в строке (для gpt-3.5)
+# Считает количество токенов в строке (для gpt-3, gpt-3.5)
 async def total_tokens(s):
-    encoding = tiktoken.get_encoding("cl100k_base")
+    encoding = tiktoken.get_encoding("gpt2")
     input_ids = encoding.encode(s)
     # print(len(input_ids))
     return len(input_ids)
 
 
 # Генерация кода
-async def answer(prompt):
+def answer(prompt):
     conversation = [{'role': 'user', 'content': prompt}]
     response = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=conversation,
         temperature=0.5,
-        max_tokens=4097 - await total_tokens(prompt),
+        max_tokens=4080 - total_tokens(prompt),
         top_p=1.0,
         frequency_penalty=0.21,
         presence_penalty=0.0,
