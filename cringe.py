@@ -602,7 +602,8 @@ async def solve(lesson_url, _id):
 
         try:
             for e in ans:
-                ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
+                if '```' not in e:
+                    ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
         except:
             # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
