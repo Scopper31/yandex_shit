@@ -24,7 +24,7 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from utils import TestStates
-
+import asyncio
 
 openai.api_key = key
 
@@ -61,7 +61,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='',
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', process='',
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
         self.login = login
         self.links = []
@@ -69,6 +69,7 @@ class User:
         self.qr_code = qr_code
         self.send_time = send_time
         self.wanna_commit_suicide = wanna_commit_suicide
+        self.process = process
 
 
 users_data = {}
@@ -105,11 +106,13 @@ async def first_test_state_case_met(message: types.Message):
     users_data[message.from_user.id].pin = pin
     users_data[message.from_user.id].wanna_commit_suicide = True
 
-    
+
 @dp.callback_query_handler(lambda c: c.data == 'stop', state=TestStates.all())
 async def process_callback_stop(callback_query: types.CallbackQuery):
     state = dp.current_state(user=callback_query.from_user.id)
     await state.reset_state()
+    users_data[callback_query.from_user.id].process.close()
+    users_data[callback_query.from_user.id].links = []
     await bot.send_message(callback_query.from_user.id, 'Ввод данных прерван')
 
 
@@ -228,8 +231,11 @@ async def third_test_state_case_met(message: types.Message):
 
         if len(users_data[message.from_user.id].links) == 0:
             users_data[message.from_user.id].links.extend(links_array)
+
             thread = threading.Thread(target=asyncio.run, args=(make_task(message.from_user.id),))
+            users_data[message.from_user.id].process = thread
             thread.start()
+
         else:
             users_data[message.from_user.id].links.append(message.text)
 
@@ -312,7 +318,7 @@ async def extract_between(input_string, start_symbol, end_symbol):
         end_index = input_string.find(end_symbol, start_index + 1)
         if end_index == -1:
             break
-        substrings.add(start_symbol + input_string[start_index + 1: end_index] + end_symbol)
+        substrings.add(input_string[start_index + 1: end_index])
         start_index = end_index + 1
     return substrings
 
@@ -349,9 +355,9 @@ async def remove_comments(src):
     return re.sub('#.*', '', src)
 
 
-# Считает количество токенов в строке (для gpt-3.5)
+# Считает количество токенов в строке (для gpt-2 и gpt-3)
 async def total_tokens(s):
-    encoding = tiktoken.get_encoding("cl100k_base")
+    encoding = tiktoken.get_encoding("gpt2")
     input_ids = encoding.encode(s)
     # print(len(input_ids))
     return len(input_ids)
@@ -363,12 +369,13 @@ async def answer(s):
         model="text-davinci-003",
         prompt=s,
         temperature=0.5,
-        max_tokens=4096 - await total_tokens(s),
+        max_tokens=4097 - await total_tokens(s),
         top_p=1.0,
         frequency_penalty=0.23,
         presence_penalty=0.0,
     )
     return response["choices"][0]["text"]
+
 
 
 # Собирает ссылки на задания с ссылки на урок
@@ -564,7 +571,6 @@ async def solve(lesson_url, _id):
         # print(ans)
         # print('-' * 50)
         ans = await lines(ans)
-        ans = ans.strip()
 
         try:
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
@@ -586,7 +592,8 @@ async def solve(lesson_url, _id):
         await asyncio.sleep(0.5)
         try:
             if fla == 0:
-                await asyncio.sleep(max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
+                await asyncio.sleep(
+                    max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
                 # print('fhfhfhfhfhfh')
                 fla = 1
             users_data[_id].send_time = datetime.datetime.now()
@@ -599,7 +606,7 @@ async def solve(lesson_url, _id):
 
         try:
             shit = 0
-            for t in range(20):
+            for t in range(100):
                 driver.refresh()
                 await asyncio.sleep(3)
                 if 'Доработать' in driver.page_source and t > 15:
