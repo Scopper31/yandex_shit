@@ -24,7 +24,6 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from utils import TestStates
-import asyncio
 
 openai.api_key = key
 
@@ -570,6 +569,7 @@ async def solve(lesson_url, _id):
             return
         # print(ans)
         # print('-' * 50)
+        ans = ans.strip()
         ans = await lines(ans)
 
         try:
