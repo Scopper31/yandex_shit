@@ -363,7 +363,7 @@ async def answer(s):
         model="text-davinci-003",
         prompt=s,
         temperature=0.5,
-        max_tokens=4097 - await total_tokens(s),
+        max_tokens=4096 - await total_tokens(s),
         top_p=1.0,
         frequency_penalty=0.23,
         presence_penalty=0.0,
