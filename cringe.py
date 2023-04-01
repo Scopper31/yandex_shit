@@ -61,7 +61,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='',
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=10,
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
         self.login = login
         self.links = []
@@ -69,6 +69,7 @@ class User:
         self.qr_code = qr_code
         self.send_time = send_time
         self.wanna_commit_suicide = wanna_commit_suicide
+        self.fck = fck
 
 
 users_data = {}
@@ -146,6 +147,8 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
         await bot.send_message(callback_query.from_user.id,
                                'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
                                reply_markup=stop_markup)
+        thread_time = threading.Thread(target=asyncio.run, args=(time_end(callback_query.from_user.id, bot),))
+        thread_time.start()
 
 
 @dp.callback_query_handler(lambda c: c.data == 'info_b')
@@ -213,6 +216,21 @@ async def zero_state_msg(msg: types.Message):
         await bot.send_message(msg.from_user.id, 'Что ты несешь?')
 
 
+async def driver_end(__id):
+    driver = users_data[__id].driver
+    driver.quit()
+
+
+async def time_end(_id, botik):
+    while users_data[_id].fck != 0:
+        users_data[_id].fck -= 2
+        await asyncio.sleep(2)
+    await driver_end(_id)
+    await botik.send_message(_id, 'Ввод данных прерван(')
+
+#    await time_end(message.from_user.id)
+
+
 @dp.message_handler(state=TestStates.TEST_STATE_1[0])
 async def third_test_state_case_met(message: types.Message):
     check = await check_url(message.text)
@@ -240,6 +258,7 @@ async def third_test_state_case_met(message: types.Message):
     else:
         await message.delete()
         await message.reply('Ссылка говно!', reply=False)
+    users_data[message.from_user.id].fck = 7
 
 
 async def shutdown(dispatcher: Dispatcher):
@@ -423,7 +442,8 @@ async def make_task(_id):
     while len(users_data[_id].links) != 0:
         # print(_data_links)
         await solve(users_data[_id].links[0], _id)
-        users_data[_id].links.pop(0)
+        if len(users_data[_id].links) != 0:
+            users_data[_id].links.pop(0)
 
 
 # Функция нарешивания задач
