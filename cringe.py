@@ -25,6 +25,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from utils import TestStates
 
+
 openai.api_key = key
 
 template = 'Python, dont write any comments, dont write anything except code, provide answer in code block, obey pep8\nThe problem: '
@@ -60,7 +61,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', process='',
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='',
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
         self.login = login
         self.links = []
@@ -68,7 +69,6 @@ class User:
         self.qr_code = qr_code
         self.send_time = send_time
         self.wanna_commit_suicide = wanna_commit_suicide
-        self.process = process
 
 
 users_data = {}
@@ -110,7 +110,6 @@ async def first_test_state_case_met(message: types.Message):
 async def process_callback_stop(callback_query: types.CallbackQuery):
     state = dp.current_state(user=callback_query.from_user.id)
     await state.reset_state()
-    users_data[callback_query.from_user.id].process.close()
     users_data[callback_query.from_user.id].links = []
     await bot.send_message(callback_query.from_user.id, 'Ввод данных прерван')
 
@@ -232,7 +231,6 @@ async def third_test_state_case_met(message: types.Message):
             users_data[message.from_user.id].links.extend(links_array)
 
             thread = threading.Thread(target=asyncio.run, args=(make_task(message.from_user.id),))
-            users_data[message.from_user.id].process = thread
             thread.start()
 
         else:
@@ -363,13 +361,13 @@ async def total_tokens(s):
 
 
 # Генерация кода
-def answer(prompt):
+async def answer(prompt):
     conversation = [{'role': 'user', 'content': prompt}]
     response = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=conversation,
         temperature=0.5,
-        max_tokens=4080 - total_tokens(prompt),
+        max_tokens=4080 - await total_tokens(prompt),
         top_p=1.0,
         frequency_penalty=0.21,
         presence_penalty=0.0,
@@ -422,11 +420,10 @@ async def pep8(code):
 
 # Реализация очереди
 async def make_task(_id):
-    _data_links = users_data[_id].links
-    while len(_data_links) != 0:
+    while len(users_data[_id].links) != 0:
         # print(_data_links)
-        await solve(_data_links[0], _id)
-        _data_links.pop(0)
+        await solve(users_data[_id].links[0], _id)
+        users_data[_id].links.pop(0)
 
 
 # Функция нарешивания задач
