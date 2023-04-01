@@ -564,6 +564,7 @@ async def solve(lesson_url, _id):
         # print(ans)
         # print('-' * 50)
         ans = await lines(ans)
+        ans = ans.strip()
 
         try:
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
