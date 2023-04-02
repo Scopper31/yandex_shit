@@ -61,7 +61,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=1000,
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=10,
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
         self.login = login
         self.links = []
@@ -112,6 +112,7 @@ async def process_callback_stop(callback_query: types.CallbackQuery):
     state = dp.current_state(user=callback_query.from_user.id)
     await state.reset_state()
     users_data[callback_query.from_user.id].links = []
+    users_data[callback_query.from_user.id].fck = -1
     await bot.send_message(callback_query.from_user.id, 'Ввод данных прерван')
 
 
@@ -223,8 +224,10 @@ async def driver_end(__id):
 
 async def time_end(_id):
     while users_data[_id].fck != 0:
-        users_data[_id].fck -= 2
-        await asyncio.sleep(2)
+        if users_data[_id].fck == -1:
+            return 
+        users_data[_id].fck -= 1
+        await asyncio.sleep(1)
     await driver_end(_id)
     kill_me = dp.current_state(user=_id)
     await kill_me.reset_state()
@@ -260,7 +263,7 @@ async def third_test_state_case_met(message: types.Message):
     else:
         await message.delete()
         await message.reply('Ссылка говно!', reply=False)
-    users_data[message.from_user.id].fck = 1000
+    users_data[message.from_user.id].fck = 10
 
 
 async def shutdown(dispatcher: Dispatcher):
