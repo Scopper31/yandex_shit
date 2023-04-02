@@ -61,7 +61,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=10,
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=1000,
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
         self.login = login
         self.links = []
@@ -150,6 +150,12 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
                                reply_markup=stop_markup)
         thread_time = threading.Thread(target=asyncio.run, args=(time_end(callback_query.from_user.id),))
         thread_time.start()
+        while users_data[callback_query.from_user.id].fck != 0:
+            if users_data[callback_query.from_user.id].fck == -1:
+                break
+            await asyncio.sleep(1)
+        if users_data[callback_query.from_user.id].fck == 0:
+            await bot.send_message(callback_query.from_user.id, 'бб')
 
 
 @dp.callback_query_handler(lambda c: c.data == 'info_b')
@@ -225,15 +231,17 @@ async def driver_end(__id):
 async def time_end(_id):
     while users_data[_id].fck != 0:
         if users_data[_id].fck == -1:
-            return 
+            return
         users_data[_id].fck -= 1
         await asyncio.sleep(1)
     await driver_end(_id)
     kill_me = dp.current_state(user=_id)
     await kill_me.reset_state()
-    za_nashih = Bot(token=BOT_TOKEN)
-    await za_nashih.send_message(_id, 'бб')
-    await za_nashih.close()
+    users_data[_id].zaebalo = True
+    # za_nashih = Bot(token=BOT_TOKEN)
+    # await za_nashih.send_message(_id, 'бб')
+    # await za_nashih.close()
+    #await bot.send_message(_id, 'бб')
 
 
 @dp.message_handler(state=TestStates.TEST_STATE_1[0])
@@ -242,10 +250,8 @@ async def third_test_state_case_met(message: types.Message):
     if type(check) == list:
         if check == ['lesson']:
             links_array = await lesson_parser(message.chat.id, message.text)
-            print(1)
         else:
             links_array = [message.text]
-            print(2)
         await message.reply('Погнали!', reply=False)
         print(message.text)
         print(links_array)
@@ -263,7 +269,7 @@ async def third_test_state_case_met(message: types.Message):
     else:
         await message.delete()
         await message.reply('Ссылка говно!', reply=False)
-    users_data[message.from_user.id].fck = 10
+    users_data[message.from_user.id].fck = 1000
 
 
 async def shutdown(dispatcher: Dispatcher):
