@@ -303,7 +303,7 @@ async def login_qr(_id):
     # chrome_options.add_experimental_option("detach", True)
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver_login = webdriver.Chrome(options=chrome_options)
+    driver_login = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
     driver_login.get("https://passport.yandex.ru/auth?origin=lyceum&retpath=https%3A%2F%2Flyceum.yandex.ru%2F")
     ActionChains(driver_login).click(
         driver_login.find_element(By.CLASS_NAME, "AuthSocialBlock-provider.AuthSocialBlock-provider_code_qr")).perform()
@@ -428,7 +428,7 @@ async def pep8(code):
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--crash-dumps-dir=/tmp')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), tions=chrome_options)
     # driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     code = await lines(code)
