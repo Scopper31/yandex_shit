@@ -14,7 +14,6 @@ import tiktoken
 from aiogram import Bot, Dispatcher, executor, types, utils
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.types.message import ContentType
 
 from bs4 import BeautifulSoup
@@ -36,28 +35,12 @@ one_task = -1
 
 logging.basicConfig(level=logging.INFO)
 
-BOT_TOKEN = '6064341811:AAFJlrN3bV8fHUuL0eO_VbZcKerBH2cH9Io'
-PAYMENTS_TOKEN = '381764678:TEST:51884'
-
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 dp.middleware.setup(LoggingMiddleware())
 
 PRICE = types.LabeledPrice(label="Подписка на 1 месяц", amount=1000 * 100)  # в копейках (руб)
-
-button1 = InlineKeyboardButton('Купить подписку', callback_data='buy_b')
-button2 = InlineKeyboardButton('Решить задачи', callback_data='solve_b')
-button3 = InlineKeyboardButton('Информация', callback_data='info_b')
-
-markup2 = InlineKeyboardMarkup().add(button1).add(button2).add(button3)
-
-stop_b = InlineKeyboardButton('Прервать', callback_data='stop')
-stop_markup = InlineKeyboardMarkup().add(stop_b)
-
-yes_b = InlineKeyboardButton('Да', callback_data='yes_call')
-no_b = InlineKeyboardButton('Нет', callback_data='no_call')
-num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
@@ -75,152 +58,24 @@ class User:
 users_data = {}
 
 
-@dp.callback_query_handler(lambda c: c.data == 'buy_b')
-async def process_callback_buy2(callback_query: types.CallbackQuery):
-    await callback_query.message.delete()
-    await bot.answer_callback_query(callback_query.id)
-    if PAYMENTS_TOKEN.split(':')[1] == 'TEST':
-        await bot.send_message(callback_query.from_user.id, "Тестовый платеж!!!")
-        await bot.send_message(callback_query.from_user.id,
-                               'В поле "Доставка" введите логин вашего Яндекс аккаунта с лицеем')
-
-    await bot.send_invoice(callback_query.from_user.id,
-                           title="Подписка на бота",
-                           description="Активация подписки на бота на 1 месяц",
-                           provider_token=PAYMENTS_TOKEN,
-                           currency="rub",
-                           photo_url="https://www.aroged.com/wp-content/uploads/2022/06/Telegram-has-a-premium-subscription.jpg",
-                           photo_width=416,
-                           photo_height=234,
-                           photo_size=416,
-                           need_email=True,
-                           is_flexible=False,
-                           prices=[PRICE],
-                           start_parameter="one-month-subscription",
-                           payload="test-invoice-payload")
+# Собирает ссылки на задания со ссылки на урок
+async def lesson_parser(_id, url):
+    driver = users_data[_id].driver
+    driver.get(url)
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+    hrefs = [a['href'] for a in soup.find_all(class_='student-task-list__task')]
+    hrefs = ['https://lyceum.yandex.ru' + i for i in hrefs]
+    return hrefs
 
 
-@dp.message_handler(state=TestStates.TEST_STATE_5[0])
-async def first_test_state_case_met(message: types.Message):
-    pin = message.text
-    users_data[message.from_user.id].pin = pin
-    users_data[message.from_user.id].wanna_commit_suicide = True
-
-
-@dp.callback_query_handler(lambda c: c.data == 'stop', state=TestStates.all())
-async def process_callback_stop(callback_query: types.CallbackQuery):
-    state = dp.current_state(user=callback_query.from_user.id)
-    await state.reset_state()
-    users_data[callback_query.from_user.id].links = []
-    users_data[callback_query.from_user.id].fck = -1
-    await bot.send_message(callback_query.from_user.id, 'Ввод данных прерван')
-
-
-@dp.callback_query_handler(lambda c: c.data == 'solve_b')
-async def process_callback_solve(callback_query: types.CallbackQuery):
-    await callback_query.message.delete()
-    users_data[callback_query.from_user.id] = User()
-    state = dp.current_state(user=callback_query.from_user.id)
-    await bot.send_message(callback_query.from_user.id, 'Подтверждай вход через QR код')
-    await login_qr(callback_query.from_user.id)
-    sending = await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
-    sending_id = sending.message_id
-    driver = users_data[callback_query.from_user.id].driver
-    qr_url = driver.current_url
-    while driver.current_url == qr_url:
-        if 'Внутренняя ошибка: обновите страницу и попробуйте еще раз' in driver.page_source:
-            await state.reset_state()
-            await bot.send_message(callback_query.from_user.id, 'Давай по новой')
-            return
-        await asyncio.sleep(1)
-    await users_login(callback_query.from_user.id)
-    sqlite_connection = sql.sql_connection()
-    if not sql.check_existence(sqlite_connection, users_data[callback_query.from_user.id].login.lower()):
-        await bot.delete_message(callback_query.from_user.id, sending_id)
-        await bot.send_message(callback_query.from_user.id, '❌')
-        state = dp.current_state(user=callback_query.from_user.id)
-        await state.reset_state()
-        await bot.send_message(callback_query.from_user.id, 'У вас нет подписки((( сори')
-    else:
-        await bot.delete_message(callback_query.from_user.id, sending_id)
-        await bot.send_message(callback_query.from_user.id, '🆗')
-        await state.set_state(TestStates.all()[1])
-        await bot.send_message(callback_query.from_user.id,
-                               'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
-                               reply_markup=stop_markup)
-        thread_time = threading.Thread(target=asyncio.run, args=(time_end(callback_query.from_user.id),))
-        thread_time.start()
-        while users_data[callback_query.from_user.id].fck != 0:
-            if users_data[callback_query.from_user.id].fck == -1:
-                break
-            await asyncio.sleep(1)
-        if users_data[callback_query.from_user.id].fck == 0:
-            await bot.send_message(callback_query.from_user.id, 'бб')
-
-
-@dp.callback_query_handler(lambda c: c.data == 'info_b')
-async def process_callback_info(callback_query: types.CallbackQuery):
-    await callback_query.message.delete()
-    await bot.answer_callback_query(callback_query.id)
-    await bot.send_message(callback_query.from_user.id, 'Информаиция:')
-    await bot.send_message(callback_query.from_user.id, 'В другой жизни!')
-
-
-@dp.message_handler(commands=['start', 'menu'])
-async def send_welcome(message: types.Message):
-    state = dp.current_state(user=message.from_user.id)
-    await state.reset_state()
-    await bot.send_message(message.chat.id,
-                           "Привет!\nЯ бот-помощник от sanyasupertank и popkapirat!\nЕсли у тебя нет времени решать задачи, я сделаю все за тебя автоматически.",
-                           reply_markup=markup2)
-
-
-@dp.message_handler(commands=['info'])
-async def send_welcome(message: types.Message):
-    await bot.send_message(message.chat.id, 'мне пока лень(((')
-
-
-@dp.pre_checkout_query_handler(lambda query: True)
-async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery):
-    # print('order_info')
-    # print(pre_checkout_q.order_info)
-    if not hasattr(pre_checkout_q.order_info, 'email'):
-        return await bot.answer_pre_checkout_query(
-            pre_checkout_q.id,
-            ok=False,
-            error_message='не введен логин Яндекс лицея')
-    await bot.answer_pre_checkout_query(pre_checkout_q.id, ok=True)
-
-
-@dp.message_handler(content_types=ContentType.SUCCESSFUL_PAYMENT)
-async def successful_payment(message: types.Message):
-    # print("SUCCESSFUL PAYMENT:")
-    payment_info = message.successful_payment.to_python()
-    sqlite_connection = sql.sql_connection()
-    sql.add_subscriber(sqlite_connection, payment_info['order_info']['email'].split('@')[0])
-    sqlite_connection.close()
-    for k, v in payment_info.items():
-        pass
-        # print(f"{k} = {v}")
-
-    # print(payment_info)
-    # print(message.successful_payment)
-    await bot.send_message(message.chat.id,
-                           f"Платёж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")
-
-
-@dp.message_handler()
-async def zero_state_msg(msg: types.Message):
-    if 'пидор' in msg.text.lower():
-        await bot.send_message(msg.from_user.id, 'Бога побойся, уёбок')
-
-    elif 'ильяпетух' in msg.text.lower():
-        sqlite_connection = sql.sql_connection()
-        sql.add_subscriber(sqlite_connection, msg.text.split()[1])
-        sqlite_connection.close()
-        await bot.send_message(msg.from_user.id, 'Ок бро, я тебя понял')
-    else:
-        await bot.send_message(msg.from_user.id, 'Что ты несешь?')
+# Реализация очереди
+async def make_task(_id):
+    while len(users_data[_id].links) != 0:
+        # print(_data_links)
+        await solve(users_data[_id].links[0], _id)
+        if len(users_data[_id].links) != 0:
+            users_data[_id].links.pop(0)
 
 
 async def driver_end(__id):
@@ -244,34 +99,6 @@ async def time_end(_id):
     #await bot.send_message(_id, 'бб')
 
 
-@dp.message_handler(state=TestStates.TEST_STATE_1[0])
-async def third_test_state_case_met(message: types.Message):
-    check = await check_url(message.text)
-    if type(check) == list:
-        if check == ['lesson']:
-            links_array = await lesson_parser(message.chat.id, message.text)
-        else:
-            links_array = [message.text]
-        await message.reply('Погнали!', reply=False)
-        print(message.text)
-        print(links_array)
-
-        if len(users_data[message.from_user.id].links) == 0:
-            users_data[message.from_user.id].links.extend(links_array)
-
-            thread = threading.Thread(target=asyncio.run, args=(make_task(message.from_user.id),))
-            thread.start()
-
-        else:
-            users_data[message.from_user.id].links.append(message.text)
-
-        # await message.reply(f'Задача выполнена', reply=False)
-    else:
-        await message.delete()
-        await message.reply('Ссылка говно!', reply=False)
-    users_data[message.from_user.id].fck = 1000
-
-
 async def shutdown(dispatcher: Dispatcher):
     await dispatcher.storage.close()
     await dispatcher.storage.wait_closed()
@@ -291,6 +118,26 @@ async def users_login(_id):
 
 
 # poshel nahuy
+
+# Проверка, что ссылка на яндекс, возвращает урок или задание (задание - ["task"], урок - ["lesson"]
+async def check_url(url):
+    url = url.replace('https://', '')
+    url = url.split('/')
+    domain = url[0]
+    if domain == "lyceum.yandex.ru":
+        if len(url) > 1:
+            if 'courses' == url[1]:
+                if len(url) > 3:
+                    if 'groups' == url[3]:
+                        if len(url) > 5:
+                            if 'lessons' == url[5]:
+                                if len(url) > 7:
+                                    if 'tasks' == url[7]:
+                                        return ['task']
+                                else:
+                                    return ['lesson']
+    return "Проверьте ссылку"
+
 
 # Создание сесии, добавляет qr и driver(сессию) в users_data
 async def login_qr(_id):
@@ -312,26 +159,6 @@ async def login_qr(_id):
     users_data[_id].driver = driver_login
     qr = BytesIO(qr)
     users_data[_id].qr_code = qr
-
-
-# Проверка что ссылка на яндекс, возвращает урок или задание (задание - ["task"], урок - ["lesson"]
-async def check_url(url):
-    url = url.replace('https://', '')
-    url = url.split('/')
-    domain = url[0]
-    if domain == "lyceum.yandex.ru":
-        if len(url) > 1:
-            if 'courses' == url[1]:
-                if len(url) > 3:
-                    if 'groups' == url[3]:
-                        if len(url) > 5:
-                            if 'lessons' == url[5]:
-                                if len(url) > 7:
-                                    if 'tasks' == url[7]:
-                                        return ['task']
-                                else:
-                                    return ['lesson']
-    return "Проверьте ссылку"
 
 
 # Вычленяет код между двумя задаными символами
@@ -405,18 +232,6 @@ async def answer(prompt):
     return response["choices"][0]["message"]["content"]
 
 
-
-# Собирает ссылки на задания с ссылки на урок
-async def lesson_parser(_id, url):
-    driver = users_data[_id].driver
-    driver.get(url)
-    html = driver.page_source
-    soup = BeautifulSoup(html, 'html.parser')
-    hrefs = [a['href'] for a in soup.find_all(class_='student-task-list__task')]
-    hrefs = ['https://lyceum.yandex.ru' + i for i in hrefs]
-    return hrefs
-
-
 # Приводит код к pep8
 async def pep8(code):
     url = "https://extendsclass.com/python-formatter.html"
@@ -446,15 +261,6 @@ async def pep8(code):
     result = list(BeautifulSoup(driver.page_source, 'html.parser').find_all(class_='CodeMirror-line'))
     code_pep8 = '\n'.join([line.text for line in result])
     return code_pep8
-
-
-# Реализация очереди
-async def make_task(_id):
-    while len(users_data[_id].links) != 0:
-        # print(_data_links)
-        await solve(users_data[_id].links[0], _id)
-        if len(users_data[_id].links) != 0:
-            users_data[_id].links.pop(0)
 
 
 # Функция нарешивания задач
