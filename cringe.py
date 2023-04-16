@@ -460,7 +460,7 @@ async def make_task(_id):
         await solve(users_data[_id].links[0], _id)
         if len(users_data[_id].links) != 0:
             users_data[_id].links.pop(0)
-        users_data[message.from_user.id].fck = 2000
+        users_data[_id].fck = 2000
 
 
 # Функция нарешивания задач
