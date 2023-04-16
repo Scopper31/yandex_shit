@@ -214,7 +214,7 @@ async def zero_state_msg(msg: types.Message):
     if 'пидор' in msg.text.lower():
         await bot.send_message(msg.from_user.id, 'Бога побойся, уёбок')
 
-    elif 'ильяпетух' in msg.text.lower():
+    elif 'бабиджон' in msg.text.lower():
         sqlite_connection = sql.sql_connection()
         sql.add_subscriber(sqlite_connection, msg.text.split()[1])
         sqlite_connection.close()
