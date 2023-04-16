@@ -216,7 +216,12 @@ async def zero_state_msg(msg: types.Message):
 
     elif 'бабиджон' in msg.text.lower():
         sqlite_connection = sql.sql_connection()
-        sql.add_subscriber(sqlite_connection, msg.text.lower().split()[1])
+        if '@' in msg.text.lower():
+            users_mail = msg.text.lower().split()[1].split('@')[0]
+        else:
+            users_mail = msg.text.lower().split()[1]
+
+        sql.add_subscriber(sqlite_connection, users_mail)
         sqlite_connection.close()
         await bot.send_message(msg.from_user.id, 'Ок бро, я тебя понял')
     else:
