@@ -61,10 +61,10 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=2000,
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=2000, crunch = 0,
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
 
-        self.crunch = 0
+        self.crunch = crunch
         self.info_messege_ids = []
         self.tasks_messege_ids = []
         self.other_shit = []
