@@ -216,7 +216,7 @@ async def zero_state_msg(msg: types.Message):
 
     elif 'бабиджон' in msg.text.lower():
         sqlite_connection = sql.sql_connection()
-        sql.add_subscriber(sqlite_connection, msg.text.split()[1])
+        sql.add_subscriber(sqlite_connection, msg.text.lower().split()[1])
         sqlite_connection.close()
         await bot.send_message(msg.from_user.id, 'Ок бро, я тебя понял')
     else:
