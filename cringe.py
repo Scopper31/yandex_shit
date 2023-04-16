@@ -162,18 +162,15 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
 async def process_callback_info(callback_query: types.CallbackQuery):
     await callback_query.message.delete()
     await bot.answer_callback_query(callback_query.id)
-    await bot.send_message(callback_query.from_user.id, 'Информаиция:')
-    await bot.send_message(callback_query.from_user.id, 'В другой жизни!')
+    await bot.send_message(callback_query.from_user.id, 'Информаиция:\n В другой жизни!')
 
 
 @dp.message_handler(commands=['start', 'menu'])
 async def send_welcome(message: types.Message):
     state = dp.current_state(user=message.from_user.id)
     await state.reset_state()
-    await bot.send_message(message.chat.id,
-                           "Привет!\nЯ бот-помощник от sanyasupertank и popkapirat!\nЕсли у тебя нет времени решать задачи, я сделаю все за тебя автоматически.",
-                           reply_markup=markup2)
-
+    Photo = open('hi.jpg', 'rb')
+    await bot.send_photo(message.chat.id, photo=Photo, caption="Привет!\nЯ бот-помощник от sanyasupertank и popkapirat!\nЕсли у тебя нет времени решать задачи, я сделаю все за тебя автоматически.", reply_markup=markup2)
 
 @dp.message_handler(commands=['info'])
 async def send_welcome(message: types.Message):
