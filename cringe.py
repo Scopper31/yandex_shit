@@ -50,7 +50,7 @@ button1 = InlineKeyboardButton('Купить подписку', callback_data='b
 button2 = InlineKeyboardButton('Решить задачи', callback_data='solve_b')
 button3 = InlineKeyboardButton('Информация', callback_data='info_b')
 
-markup2 = InlineKeyboardMarkup().add(button1).add(button3)#.add(button2)
+markup2 = InlineKeyboardMarkup().add(button2).add(button3)#.add(button1)
 
 stop_b = InlineKeyboardButton('Прервать', callback_data='stop')
 stop_markup = InlineKeyboardMarkup().add(stop_b)
