@@ -1,8 +1,18 @@
-from aiogram import Dispatcher
-from cringe import bot, types, ContentType, TestStates
-from cringe import sql, asyncio, threading, make_task
-from cringe import check_url, lesson_parser, markup2
-from cringe import users_data
+import threading
+
+from aiogram import Dispatcher, Bot
+from aiogram.types.message import ContentType
+
+from problem_solving.solving import *
+from keyboards.inline_keyboards import *
+from database import sql
+from misc.utils.utils import *
+from cringe import types, asyncio
+from misc.env import *
+
+users_data = {}
+
+bot = Bot(token=TOKENS.BOT_TOKEN, parse_mode='HTML')
 
 
 def register_message_handlers(dp: Dispatcher):
@@ -27,19 +37,13 @@ def register_message_handlers(dp: Dispatcher):
 
     @dp.message_handler(content_types=ContentType.SUCCESSFUL_PAYMENT)
     async def successful_payment(message: types.Message):
-        # print("SUCCESSFUL PAYMENT:")
         payment_info = message.successful_payment.to_python()
         sqlite_connection = sql.sql_connection()
         sql.add_subscriber(sqlite_connection, payment_info['order_info']['email'].split('@')[0])
         sqlite_connection.close()
-        for k, v in payment_info.items():
-            pass
-            # print(f"{k} = {v}")
-
-        # print(payment_info)
-        # print(message.successful_payment)
         await bot.send_message(message.chat.id,
-                               f"Платёж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")
+                               f"Платёж на сумму {message.successful_payment.total_amount // 100} "
+                               f"{message.successful_payment.currency} прошел успешно!")
 
     @dp.message_handler()
     async def zero_state_msg(msg: types.Message):
@@ -74,12 +78,7 @@ def register_message_handlers(dp: Dispatcher):
 
             else:
                 users_data[message.from_user.id].links.append(message.text)
-    
-            # await message.reply(f'Задача выполнена', reply=False)
         else:
             await message.delete()
             await message.reply('Ссылка говно!', reply=False)
         users_data[message.from_user.id].fck = 1000
-
-
-

@@ -1,6 +1,10 @@
 import sqlite3
 from sqlite3 import Error
 from datetime import date, datetime, timedelta
+from aiogram import types
+
+
+PRICE = types.LabeledPrice(label="Подписка на 1 месяц", amount=1000 * 100)  # в копейках (руб)
 
 
 def sql_connection():
@@ -21,24 +25,12 @@ def sql_table(con):
     cursor.close()
 
 
-# sqlite_connection = sql_connection()
-# sql_table(sqlite_connection)
-# sqlite_connection.close()
-
-
 def delete_pidor(con, email):
     sql_delete_query = f"""DELETE from sqlitedb_subscribers where email == {email}"""
     cursor = con.cursor()
     cursor.execute(sql_delete_query)
     con.commit()
     cursor.close()
-
-
-# pidors_email = input()
-# sqlite_connection = sql_connection()
-# delete_pidor(sqlite_connection, pidors_email)
-# sqlite_connection.close()
-
 
 
 def delete_record(con):
@@ -48,11 +40,6 @@ def delete_record(con):
     cursor.execute(sql_delete_query)
     con.commit()
     cursor.close()
-
-
-# sqlite_connection = sql_connection()
-# delete_record(sqlite_connection)
-# sqlite_connection.close()
 
 
 def add_subscriber(con, email):
@@ -71,12 +58,6 @@ def add_subscriber(con, email):
         print('такой уже есть')
 
 
-# sqlite_connection = sql_connection()
-# mail = input()
-# add_subscriber(sqlite_connection, mail)
-# sqlite_connection.close()
-
-
 def check_subscribtion(con, mail):
     time_now = datetime.now().date()
     sqlite_select_query = """SELECT * from sqlitedb_subscribers where email = ?"""
@@ -93,12 +74,6 @@ def check_subscribtion(con, mail):
     return False
 
 
-# sqlite_connection = sql_connection()
-# mail = input()
-# print(check_subscribtion(sqlite_connection, mail))
-# sqlite_connection.close()
-
-
 def check_existence(con, mail):
     cursor = con.cursor()
     info = cursor.execute('SELECT * FROM sqlitedb_subscribers WHERE email=?', (mail,))
@@ -106,8 +81,3 @@ def check_existence(con, mail):
         return False
     else:
         return True
-
-# sqlite_connection = sql_connection()
-# mail = input()
-# print(check_existence(sqlite_connection, mail))
-# sqlite_connection.close()

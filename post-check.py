@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime
 import requests as r
 
 
@@ -33,5 +33,4 @@ def add():
     r.post('http://127.0.0.1:5000', data=data)
 
 
-#add()
 print(check_payment())

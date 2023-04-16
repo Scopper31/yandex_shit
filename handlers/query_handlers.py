@@ -1,8 +1,14 @@
-from aiogram import Dispatcher
-from cringe import bot, types, User, TestStates
-from cringe import sql, asyncio, threading, login_qr
-from cringe import users_login, stop_markup, time_end
-from cringe import users_data, PAYMENTS_TOKEN, PRICE
+import threading
+
+from aiogram import Bot
+
+from misc.utils.utils import *
+from database.sql import *
+from handlers.functions.login import *
+from misc.env import *
+from keyboards.inline_keyboards import *
+
+bot = Bot(token=TOKENS.BOT_TOKEN, parse_mode='HTML')
 
 
 def register_query_handlers(dp: Dispatcher):
@@ -21,7 +27,8 @@ def register_query_handlers(dp: Dispatcher):
         state = dp.current_state(user=callback_query.from_user.id)
         await bot.send_message(callback_query.from_user.id, 'Подтверждай вход через QR код')
         await login_qr(callback_query.from_user.id)
-        sending = await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
+        sending = await bot.send_photo(callback_query.from_user.id,
+                                       photo=users_data[callback_query.from_user.id].qr_code)
         sending_id = sending.message_id
         driver = users_data[callback_query.from_user.id].driver
         qr_url = driver.current_url
@@ -32,8 +39,8 @@ def register_query_handlers(dp: Dispatcher):
                 return
             await asyncio.sleep(1)
         await users_login(callback_query.from_user.id)
-        sqlite_connection = sql.sql_connection()
-        if not sql.check_existence(sqlite_connection, users_data[callback_query.from_user.id].login.lower()):
+        sqlite_connection = sql_connection()
+        if not check_existence(sqlite_connection, users_data[callback_query.from_user.id].login.lower()):
             await bot.delete_message(callback_query.from_user.id, sending_id)
             await bot.send_message(callback_query.from_user.id, '❌')
             state = dp.current_state(user=callback_query.from_user.id)
@@ -46,7 +53,7 @@ def register_query_handlers(dp: Dispatcher):
             await bot.send_message(callback_query.from_user.id,
                                    'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
                                    reply_markup=stop_markup)
-            thread_time = threading.Thread(target=asyncio.run, args=(time_end(callback_query.from_user.id),))
+            thread_time = threading.Thread(target=asyncio.run, args=(time_end(callback_query.from_user.id, dp),))
             thread_time.start()
             while users_data[callback_query.from_user.id].fck != 0:
                 if users_data[callback_query.from_user.id].fck == -1:
@@ -75,7 +82,7 @@ def register_query_handlers(dp: Dispatcher):
     async def process_callback_buy2(callback_query: types.CallbackQuery):
         await callback_query.message.delete()
         await bot.answer_callback_query(callback_query.id)
-        if PAYMENTS_TOKEN.split(':')[1] == 'TEST':
+        if TOKENS.PAYMENT_TOKEN.split(':')[1] == 'TEST':
             await bot.send_message(callback_query.from_user.id, "Тестовый платеж!!!")
             await bot.send_message(callback_query.from_user.id,
                                    'В поле "Доставка" введите логин вашего Яндекс аккаунта с лицеем')
@@ -83,7 +90,7 @@ def register_query_handlers(dp: Dispatcher):
         await bot.send_invoice(callback_query.from_user.id,
                                title="Подписка на бота",
                                description="Активация подписки на бота на 1 месяц",
-                               provider_token=PAYMENTS_TOKEN,
+                               provider_token=TOKENS.PAYMENT_TOKEN,
                                currency="rub",
                                photo_url="https://www.aroged.com/wp-content/uploads/2022/06/Telegram-has-a-premium"
                                          "-subscription.jpg",
@@ -95,4 +102,3 @@ def register_query_handlers(dp: Dispatcher):
                                prices=[PRICE],
                                start_parameter="one-month-subscription",
                                payload="test-invoice-payload")
-

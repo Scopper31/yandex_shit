@@ -1,15 +1,40 @@
+from misc.templates import *
+from misc.utils.utils import *
+from misc.utils.code_formation import *
+
+from bs4 import BeautifulSoup
+
+from selenium.webdriver import ActionChains
+from selenium.webdriver.common.by import By
+
+import openai
+
+
 # Реализация очереди
 async def make_task(_id):
     while len(users_data[_id].links) != 0:
-        # print(_data_links)
         await solve(users_data[_id].links[0], _id)
         if len(users_data[_id].links) != 0:
             users_data[_id].links.pop(0)
 
 
+# Генерация кода
+async def answer(prompt):
+    conversation = [{'role': 'user', 'content': prompt}]
+    response = openai.ChatCompletion.create(
+        model='gpt-3.5-turbo',
+        messages=conversation,
+        temperature=0.5,
+        max_tokens=4080 - await total_tokens(prompt),
+        top_p=1.0,
+        frequency_penalty=0.21,
+        presence_penalty=0.0,
+    )
+    return response["choices"][0]["message"]["content"]
+
+
 # Функция нарешивания задач
 async def solve(lesson_url, _id):
-    # print(lesson_url)
     lesson_type = 'program'
     fla = 0
 
@@ -36,13 +61,11 @@ async def solve(lesson_url, _id):
             driver.refresh()
         driver.get(lesson_url)
     except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
     await asyncio.sleep(2)
     try:
         task_html = driver.page_source
     except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
     try:
         if 'Зачтено' in driver.page_source or (
@@ -51,14 +74,14 @@ async def solve(lesson_url, _id):
 
         if 'problem-statement' not in task_html:
             ActionChains(driver).click(
-                driver.find_element(By.CLASS_NAME, "y4ef2d--task-description-opener").find_element(By.CLASS_NAME,
-                                                                                                   "nav-tab.nav-tab_view_button")).perform()
+                driver.find_element(By.CLASS_NAME, "y4ef2d--ta"
+                                                   "sk-description"
+                                                   "-opener").find_element(By.CLASS_NAME, "nav"
+                                                                                          "-tab.nav-"
+                                                                                          "tab_view_button")).perform()
             await asyncio.sleep(1)
             task_html = driver.page_source
     except:
-        # print(driver.current_url)
-        # print(task_html)
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
 
     q = []
@@ -70,7 +93,6 @@ async def solve(lesson_url, _id):
         problem_statement = soup.find(class_='problem-statement')
         problem_statement_layer1 = problem_statement.findChildren(recursive=False)
     except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
 
     try:
@@ -79,7 +101,6 @@ async def solve(lesson_url, _id):
                 if 'Формат ввода' in element:
                     lesson_type = 'program'
                 continue
-            # print(element['class'])
             if element['class'] in forbidden_class:
                 continue
             if element['class'] == ['sample-tests']:
@@ -87,23 +108,22 @@ async def solve(lesson_url, _id):
             elif len(str.strip(element.text)) != 0:
                 q.append(str.strip(element.text))
     except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
 
     q = ''.join(q)
     for i in range(len(samples)):
         samples[i][0] = samples[i][0].text
         samples[i][1] = samples[i][1].text
-    # print(samples)
 
     await asyncio.sleep(1)
 
     try:
         if 'Открыть редактор' in task_html:
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                           "Button2.Button2_type_link.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+                                                           "Button2.Button2_type_link.Button2_size_l"
+                                                           ".Button2_theme_action.Button2_view_lyceum.y1b87d"
+                                                           "--comments__link")).perform()
     except:
-        # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
         return
 
     prompt = template + q
@@ -132,22 +152,14 @@ async def solve(lesson_url, _id):
             ans = str(await answer(prompt))
             ans = ans.strip()
         except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
         if ans[0] == '.' or ans[0] == ':':
             ans = ans[1::].strip()
-        # print(ans)
-        # print('-' * 50)
         ans = await remove_comments(ans)
-        # print(ans)
-        # print('-' * 50)
         try:
             ans = await pep8(ans)
         except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
-        # print(ans)
-        # print('-' * 50)
         ans = ans.strip()
         ans = await lines(ans)
 
@@ -158,7 +170,6 @@ async def solve(lesson_url, _id):
             ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "CodeMirror-line")).perform()
             await asyncio.sleep(0.2)
         except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
 
         try:
@@ -166,22 +177,19 @@ async def solve(lesson_url, _id):
                 if '```' not in e:
                     ActionChains(driver).send_keys('\ue011').send_keys(e).perform()
         except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
-
         await asyncio.sleep(0.5)
         try:
             if fla == 0:
                 await asyncio.sleep(
                     max(0, 300 + int((datetime.datetime.now() - users_data[_id].send_time).total_seconds())))
-                # print('fhfhfhfhfhfh')
                 fla = 1
             users_data[_id].send_time = datetime.datetime.now()
-            ActionChains(driver).click(driver.find_element(By.CLASS_NAME,
-                                                           "Button2.Button2_size_l.Button2_theme_action.Button2_view_lyceum.y1b87d--comments__link")).perform()
+            ActionChains(driver).click(driver.find_element(By.CLASS_NAME, "Button2.Button2_size_l"
+                                                                          ".Button2_theme_action.Button2_view_lyceum"
+                                                                          ".y1b87d--comments__link")).perform()
         except:
             print(1)
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return
 
         try:
@@ -198,5 +206,4 @@ async def solve(lesson_url, _id):
             if shit == 1:
                 break
         except:
-            # print('Что-то пошло не так. Проверьте ссылку и попробуйте еще раз.')
             return

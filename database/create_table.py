@@ -1,6 +1,5 @@
 import sqlite3
 from sqlite3 import Error
-from datetime import date, datetime, timedelta
 
 
 def sql_connection():
