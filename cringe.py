@@ -61,7 +61,7 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=1000,
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=2000,
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
         self.login = login
         self.links = []
@@ -269,7 +269,7 @@ async def third_test_state_case_met(message: types.Message):
     else:
         await message.delete()
         await message.reply('Ссылка говно!', reply=False)
-    users_data[message.from_user.id].fck = 1000
+    users_data[message.from_user.id].fck = 2000
 
 
 async def shutdown(dispatcher: Dispatcher):
@@ -455,6 +455,7 @@ async def make_task(_id):
         await solve(users_data[_id].links[0], _id)
         if len(users_data[_id].links) != 0:
             users_data[_id].links.pop(0)
+        users_data[message.from_user.id].fck = 2000
 
 
 # Функция нарешивания задач
