@@ -63,6 +63,11 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 class User:
     def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=2000,
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
+
+        self.crunch = 0
+        self.info_messege_ids = []
+        self.tasks_messege_ids = []
+        self.other_shit = []
         self.login = login
         self.links = []
         self.driver = driver
@@ -113,41 +118,62 @@ async def process_callback_stop(callback_query: types.CallbackQuery):
     await state.reset_state()
     users_data[callback_query.from_user.id].links = []
     users_data[callback_query.from_user.id].fck = -1
-    await bot.send_message(callback_query.from_user.id, 'Ввод данных прерван')
+    await delete_shit(callback_query.from_user.id)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'solve_b')
 async def process_callback_solve(callback_query: types.CallbackQuery):
-    await callback_query.message.delete()
-    users_data[callback_query.from_user.id] = User()
+    await delete_shit(callback_query.from_user.id)
+    users_data[callback_query.from_user.id].crunch = 0
     state = dp.current_state(user=callback_query.from_user.id)
-    await bot.send_message(callback_query.from_user.id, 'Подтверждай вход через QR код')
+
+    msg1 = await bot.send_message(callback_query.from_user.id, 'Подтверждай вход через QR код')
+    users_data[callback_query.from_user.id].tasks_messege_ids.append(msg1.message_id)
+    sticker_loading_id = '''CAACAgIAAxkBAAI_ZmQ7zdmfPRMN_wZ4Eu11i3Amn6PQAAINLwACAprZSe9yyQABpOYHZy8E'''
+    stiker_loading_sending = await bot.send_sticker(chat_id=callback_query.from_user.id, sticker=sticker_loading_id)
+    stiker_loading_sending_id = stiker_loading_sending.message_id
     await login_qr(callback_query.from_user.id)
-    sending = await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
-    sending_id = sending.message_id
+    await bot.delete_message(callback_query.from_user.id, stiker_loading_sending_id)
+    if users_data[callback_query.from_user.id].crunch == 0:
+        sending = await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
+        sending_id = sending.message_id
+        users_data[callback_query.from_user.id].tasks_messege_ids.append(sending_id)
+    else:
+        users_data[callback_query.from_user.id].crunch = 0
+        users_data[callback_query.from_user.id].fck = -1
+        return
     driver = users_data[callback_query.from_user.id].driver
     qr_url = driver.current_url
     while driver.current_url == qr_url:
         if 'Внутренняя ошибка: обновите страницу и попробуйте еще раз' in driver.page_source:
             await state.reset_state()
-            await bot.send_message(callback_query.from_user.id, 'Давай по новой')
+            msg9 = await bot.send_message(callback_query.from_user.id, 'Давай по новой')
+            users_data[callback_query.from_user.id].tasks_messege_ids.append(msg9.message_id)
             return
         await asyncio.sleep(1)
     await users_login(callback_query.from_user.id)
     sqlite_connection = sql.sql_connection()
     if not sql.check_existence(sqlite_connection, users_data[callback_query.from_user.id].login.lower()):
         await bot.delete_message(callback_query.from_user.id, sending_id)
-        await bot.send_message(callback_query.from_user.id, '❌')
+
+        msg2 = await bot.send_message(callback_query.from_user.id, '❌')
+        users_data[callback_query.from_user.id].tasks_messege_ids.append(msg2.message_id)
+
         state = dp.current_state(user=callback_query.from_user.id)
         await state.reset_state()
-        await bot.send_message(callback_query.from_user.id, 'У вас нет подписки((( сори')
+        msg10 = await bot.send_message(callback_query.from_user.id, 'У вас нет подписки((( сори')
+        users_data[callback_query.from_user.id].tasks_messege_ids.append(msg10.message_id)
     else:
         await bot.delete_message(callback_query.from_user.id, sending_id)
-        await bot.send_message(callback_query.from_user.id, '🆗')
+        msg2 = await bot.send_message(callback_query.from_user.id, '🆗')
+        users_data[callback_query.from_user.id].tasks_messege_ids.append(msg2.message_id)
+
         await state.set_state(TestStates.all()[1])
-        await bot.send_message(callback_query.from_user.id,
+        msg3 = await bot.send_message(callback_query.from_user.id,
                                'Присылай ссылки на уроки и задания (одно сообщение - одна ссылка):',
                                reply_markup=stop_markup)
+        users_data[callback_query.from_user.id].tasks_messege_ids.append(msg3.message_id)
+
         thread_time = threading.Thread(target=asyncio.run, args=(time_end(callback_query.from_user.id),))
         thread_time.start()
         while users_data[callback_query.from_user.id].fck != 0:
@@ -155,26 +181,96 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
                 break
             await asyncio.sleep(1)
         if users_data[callback_query.from_user.id].fck == 0:
-            await bot.send_message(callback_query.from_user.id, 'бб')
+            await state.reset_state()
+            await delete_shit(callback_query.from_user.id)
+
+
+async def delete_shit(_id):
+    state = dp.current_state(user=_id)
+    await state.reset_state()
+    users_data[_id].crunch = 1
+    try:
+        for shit_messege in users_data[_id].info_messege_ids:
+            try:
+                await bot.delete_message(_id, shit_messege)
+            except:
+                pass
+        users_data[_id].info_messege_ids = []
+    except:
+        pass
+
+    try:
+        for shit_messege in users_data[_id].tasks_messege_ids:
+            try:
+                await bot.delete_message(_id, shit_messege)
+            except:
+                pass
+        users_data[_id].tasks_messege_ids = []
+    except:
+        pass
+
+
+async def delete_all(_id):
+    state = dp.current_state(user=_id)
+    await state.reset_state()
+    users_data[_id].crunch = 1
+    try:
+        for shit_messege in users_data[_id].info_messege_ids:
+            try:
+                await bot.delete_message(_id, shit_messege)
+            except:
+                pass
+        users_data[_id].info_messege_ids = []
+    except:
+        pass
+
+    try:
+        for shit_messege in users_data[_id].tasks_messege_ids:
+            try:
+                await bot.delete_message(_id, shit_messege)
+            except:
+                pass
+        users_data[_id].tasks_messege_ids = []
+    except:
+        pass
+
+    try:
+        for shit_messege in users_data[_id].other_shit:
+            try:
+                await bot.delete_message(_id, shit_messege)
+            except:
+                pass
+        users_data[_id].tasks_messege_ids = []
+    except:
+        pass
 
 
 @dp.callback_query_handler(lambda c: c.data == 'info_b')
 async def process_callback_info(callback_query: types.CallbackQuery):
-    await callback_query.message.delete()
+    await delete_shit(callback_query.from_user.id)
     await bot.answer_callback_query(callback_query.id)
-    await bot.send_message(callback_query.from_user.id, 'Информаиция:\n В другой жизни!')
+    info_sending = await bot.send_message(callback_query.from_user.id, '''Наш бот предназначен для решения задач с курсов Яндекс Лицей по языку програмирования Python. Для начала работы с ботом, нажмите кнопку "Решить задачи" и отсканируйте QR-код на экране. Затем вы сможете отправлять ссылки на задачи, которые будут автоматически решаться нашим ботом.\n\n\nИнструкция по пользованию:\nНажмите кнопку "Решить задачи".\n\nОтсканируйте QR-код на экране.\n\nОтправляйте ссылки на задачи или уроки, которые вы хотите решить.\n(Не рекомендуем отправлять задачи с ручной проверкой)\n\nБот будет автоматически решать отправленные задачи.\n\nПродолжайте отправлять ссылки на задачи.\n\n\nFAQ:\n\n1. Q: Если я скину много задач, не забанит ли меня Яндекс за слишком частое решение?\n    A: Нет, после каждой задачи бот ждет ~5 минут перед посылкой следующей.\n\n2. Q: Не будет ли проблем с плагиатом? откуда берутся решения?\n    A: Каждая посылка это новое сгенерированое решение, они могут быть похожи друг на друга, если это простая задача, но все решения генерируются заново.\n\n3. Q: Как быстро он работает?\n    A: Сами решения получаются всего за несколько секунд. Между задачами совершается перерыв в несколько минут, чтобы избежать подозрений со стороны проверяющей системы.\n\n4. Q: Как хорошо он решает задачи?\n    A: Решаются в среднем 85-95% задач, основные проблемы вызывают задачи требующие творческого подхода или задачи с непонятным условием. Всегда можно указать боту на одну и ту же задачу несколько раз, и зачастую он находится в одном шаге от правильного решения, и можно его немного подтолкнуть.\n\n\nЕсли у вас есть какие-либо проблемы с использованием бота, пожалуйста, обратитесь в нашу службу поддержки, написав на почту Bot2bit@yandex.ru''')
+    users_data[callback_query.from_user.id].info_messege_ids.append(info_sending.message_id)
 
 
 @dp.message_handler(commands=['start', 'menu'])
 async def send_welcome(message: types.Message):
-    state = dp.current_state(user=message.from_user.id)
-    await state.reset_state()
-    Photo = open('hi.jpg', 'rb')
-    await bot.send_photo(message.chat.id, photo=Photo, caption="Привет!\nЯ бот-помощник от sanyasupertank и popkapirat!\nЕсли у тебя нет времени решать задачи, я сделаю все за тебя автоматически.", reply_markup=markup2)
+    users_data[message.from_user.id] = User()
+    await delete_all(message.from_user.id)
+    photo = open('hi.jpg', 'rb')
+    main_msg = await bot.send_photo(message.chat.id, photo=photo, caption="Я бот-помощник от sanyasupertank и popkapirat!\nЕсли у тебя нет времени решать задачи, я сделаю все за тебя автоматически.", reply_markup=markup2)
+    photo.close()
+    users_data[message.from_user.id].other_shit.append(main_msg.message_id)
+
+
 
 @dp.message_handler(commands=['info'])
-async def send_welcome(message: types.Message):
-    await bot.send_message(message.chat.id, 'мне пока лень(((')
+async def send_info(message: types.Message):
+    await delete_shit(message.from_user.id)
+    msg7 = await bot.send_message(message.chat.id, '''Наш бот предназначен для решения задач с курсов Яндекс Лицей по языку програмирования Python. Для начала работы с ботом, нажмите кнопку "Решить задачи" и отсканируйте QR-код на экране. Затем вы сможете отправлять ссылки на задачи, которые будут автоматически решаться нашим ботом.\n\n\nИнструкция по пользованию:\nНажмите кнопку "Решить задачи".\n\nОтсканируйте QR-код на экране.\n\nОтправляйте ссылки на задачи или уроки, которые вы хотите решить.\n(Не рекомендуем отправлять задачи с ручной проверкой)\n\nБот будет автоматически решать отправленные задачи.\n\nПродолжайте отправлять ссылки на задачи.\n\n\nFAQ:\n\n1. Q: Если я скину много задач, не забанит ли меня Яндекс за слишком частое решение?\n    A: Нет, после каждой задачи бот ждет ~5 минут перед посылкой следующей.\n\n2. Q: Не будет ли проблем с плагиатом? откуда берутся решения?\n    A: Каждая посылка это новое сгенерированое решение, они могут быть похожи друг на друга, если это простая задача, но все решения генерируются заново.\n\n3. Q: Как быстро он работает?\n    A: Сами решения получаются всего за несколько секунд. Между задачами совершается перерыв в несколько минут, чтобы избежать подозрений со стороны проверяющей системы.\n\n4. Q: Как хорошо он решает задачи?\n    A: Решаются в среднем 85-95% задач, основные проблемы вызывают задачи требующие творческого подхода или задачи с непонятным условием. Всегда можно указать боту на одну и ту же задачу несколько раз, и зачастую он находится в одном шаге от правильного решения, и можно его немного подтолкнуть.\n\n\nЕсли у вас есть какие-либо проблемы с использованием бота, пожалуйста, обратитесь в нашу службу поддержки, написав на почту Bot2bit@yandex.ru''')
+    users_data[message.from_user.id].info_messege_ids.append(msg7.message_id)
+    msg8 = message.message_id
+    users_data[message.from_user.id].info_messege_ids.append(msg8.message_id)
 
 
 @dp.pre_checkout_query_handler(lambda query: True)
@@ -220,7 +316,9 @@ async def zero_state_msg(msg: types.Message):
 
         sql.add_subscriber(sqlite_connection, users_mail)
         sqlite_connection.close()
-        await bot.send_message(msg.from_user.id, 'Ок бро, я тебя понял')
+        img = open('for_iliya.jpg', 'rb')
+        await bot.send_photo(msg.from_user.id, photo=img, caption='Ок бро, я тебя понял')
+        img.close()
     else:
         await bot.send_message(msg.from_user.id, 'Что ты несешь?')
 
@@ -239,22 +337,19 @@ async def time_end(_id):
     await driver_end(_id)
     kill_me = dp.current_state(user=_id)
     await kill_me.reset_state()
-    users_data[_id].zaebalo = True
-    # za_nashih = Bot(token=BOT_TOKEN)
-    # await za_nashih.send_message(_id, 'бб')
-    # await za_nashih.close()
-    #await bot.send_message(_id, 'бб')
 
 
 @dp.message_handler(state=TestStates.TEST_STATE_1[0])
 async def third_test_state_case_met(message: types.Message):
+    users_data[message.from_user.id].tasks_messege_ids.append(message.message_id)
     check = await check_url(message.text)
     if type(check) == list:
         if check == ['lesson']:
             links_array = await lesson_parser(message.chat.id, message.text)
         else:
             links_array = [message.text]
-        await message.reply('Погнали!', reply=False)
+        msg5 = await message.reply('Погнали!', reply=False)
+        users_data[message.from_user.id].tasks_messege_ids.append(msg5.message_id)
         print(message.text)
         print(links_array)
 
@@ -270,7 +365,8 @@ async def third_test_state_case_met(message: types.Message):
         # await message.reply(f'Задача выполнена', reply=False)
     else:
         await message.delete()
-        await message.reply('Ссылка говно!', reply=False)
+        msg6 = await message.reply('Ссылка говно!', reply=False)
+        users_data[message.from_user.id].tasks_messege_ids.append(msg6.message_id)
     users_data[message.from_user.id].fck = 2000
 
 
