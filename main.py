@@ -8,6 +8,8 @@ from misc.webhook import webhook_path, webapp_host, webapp_port, webhook_url
 
 from handlers.main import register_all_handlers
 
+import requests
+
 bot = Bot(token=TOKENS.BOT_TOKEN, parse_mode='HTML')
 
 
@@ -24,6 +26,10 @@ async def on_shutdown() -> None:
 
 
 def start_bot():
+    headers = {"api-key": webhook_path}
+    r = requests.get('https://webhook.site/token' + webhook_path + '/requests?sorting=newest', headers=headers)
+    for request in r.json()['data']:
+        print(request)
     dp = Dispatcher(bot)
     executor.start_webhook(
         dispatcher=dp,
