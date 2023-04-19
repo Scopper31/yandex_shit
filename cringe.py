@@ -324,8 +324,8 @@ async def zero_state_msg(msg: types.Message):
 
 
 async def driver_end(__id):
-    driver = users_data[__id].driver
-    driver.quit()
+    users_data[__id].driver.quit()
+    users_data[__id].driver = None
 
 
 async def time_end(_id):
