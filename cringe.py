@@ -326,6 +326,7 @@ async def zero_state_msg(msg: types.Message):
 async def driver_end(__id):
     users_data[__id].driver.quit()
     users_data[__id].driver = None
+    users_data.pop(__id)
 
 
 async def time_end(_id):
