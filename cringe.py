@@ -549,7 +549,9 @@ async def pep8(code):
 
 # Реализация очереди
 async def make_task(_id):
-    while len(users_data[_id].links) != 0:
+    while _id in users_data:
+        if len(users_data[_id].links) == 0:
+            break
         # print(_data_links)
         await solve(users_data[_id].links[0], _id)
         if len(users_data[_id].links) != 0:
