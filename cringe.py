@@ -61,10 +61,9 @@ num_markup = InlineKeyboardMarkup().add(yes_b).add(no_b)
 
 
 class User:
-    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=2000, crunch = 0,
+    def __init__(self, login='', wanna_commit_suicide='', driver='', qr_code='', fck=2000,
                  send_time=datetime.datetime(2035, 1, 1, 1, 1)):
 
-        self.crunch = crunch
         self.info_messege_ids = []
         self.tasks_messege_ids = []
         self.other_shit = []
@@ -124,7 +123,6 @@ async def process_callback_stop(callback_query: types.CallbackQuery):
 @dp.callback_query_handler(lambda c: c.data == 'solve_b')
 async def process_callback_solve(callback_query: types.CallbackQuery):
     await delete_shit(callback_query.from_user.id)
-    users_data[callback_query.from_user.id].crunch = 0
     state = dp.current_state(user=callback_query.from_user.id)
 
     msg1 = await bot.send_message(callback_query.from_user.id, 'Подтверждай вход через QR код')
@@ -134,14 +132,9 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
     stiker_loading_sending_id = stiker_loading_sending.message_id
     await login_qr(callback_query.from_user.id)
     await bot.delete_message(callback_query.from_user.id, stiker_loading_sending_id)
-    if users_data[callback_query.from_user.id].crunch == 0:
-        sending = await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
-        sending_id = sending.message_id
-        users_data[callback_query.from_user.id].tasks_messege_ids.append(sending_id)
-    else:
-        users_data[callback_query.from_user.id].crunch = 0
-        users_data[callback_query.from_user.id].fck = -1
-        return
+    sending = await bot.send_photo(callback_query.from_user.id, photo=users_data[callback_query.from_user.id].qr_code)
+    sending_id = sending.message_id
+    users_data[callback_query.from_user.id].tasks_messege_ids.append(sending_id)
     driver = users_data[callback_query.from_user.id].driver
     qr_url = driver.current_url
     while driver.current_url == qr_url:
@@ -189,7 +182,6 @@ async def delete_shit(_id):
     await driver_end(_id)
     state = dp.current_state(user=_id)
     await state.reset_state()
-    users_data[_id].crunch = 1
     try:
         for shit_messege in users_data[_id].info_messege_ids:
             try:
@@ -215,7 +207,6 @@ async def delete_all(_id):
     await driver_end(_id)
     state = dp.current_state(user=_id)
     await state.reset_state()
-    users_data[_id].crunch = 1
     try:
         for shit_messege in users_data[_id].info_messege_ids:
             try:
