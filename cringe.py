@@ -186,6 +186,7 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
 
 
 async def delete_shit(_id):
+    await driver_end(_id)
     state = dp.current_state(user=_id)
     await state.reset_state()
     users_data[_id].crunch = 1
@@ -211,6 +212,7 @@ async def delete_shit(_id):
 
 
 async def delete_all(_id):
+    await driver_end(_id)
     state = dp.current_state(user=_id)
     await state.reset_state()
     users_data[_id].crunch = 1
