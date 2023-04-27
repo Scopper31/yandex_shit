@@ -300,7 +300,7 @@ async def zero_state_msg(msg: types.Message):
     if 'пидор' in msg.text.lower():
         await bot.send_message(msg.from_user.id, 'Бога побойся, уёбок')
 
-    elif 'бабиджон' in msg.text.lower():
+    elif 'бля' in msg.text.lower():
         sqlite_connection = sql.sql_connection()
         if '@' in msg.text.lower():
             users_mail = msg.text.lower().split()[1].split('@')[0]
