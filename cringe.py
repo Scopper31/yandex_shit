@@ -179,7 +179,7 @@ async def process_callback_solve(callback_query: types.CallbackQuery):
 
 
 async def delete_shit(_id):
-    await driver_end(_id)
+    await driver_end_light(_id)
     state = dp.current_state(user=_id)
     await state.reset_state()
     try:
@@ -204,7 +204,7 @@ async def delete_shit(_id):
 
 
 async def delete_all(_id):
-    await driver_end(_id)
+    await driver_end_light(_id)
     state = dp.current_state(user=_id)
     await state.reset_state()
     try:
@@ -321,6 +321,10 @@ async def driver_end(__id):
     users_data[__id].driver = None
     users_data.pop(__id)
 
+async def driver_end_light(__id):
+    users_data[__id].driver.quit()
+    users_data[__id].driver = None
+    
 
 async def time_end(_id):
     while users_data[_id].fck != 0:
